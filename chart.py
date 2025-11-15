@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 
 
 def solve_ik_2d(x, z, l1, l2, elbow_up=False):
-    x_target = x + 18.2
-    z_target = z + 26.2
+    x_target = x + 0
+    z_target = z + 0
 
     # d = math.hypot(x_target, z_target)
     # if d > (l1 + l2) or d < abs(l1 - l2):
@@ -39,7 +39,7 @@ def plot_arm_2d(x, z, l1, l2, elbow_up=False):
     x2 = x1 + l2 * math.cos(theta1 + theta2)
     z2 = z1 + l2 * math.sin(theta1 + theta2)
 
-    x3 = x1 + 31.916 * -math.cos(math.radians(55.239))
+    x3 = x1 + 31.916 * math.cos(math.radians(55.239))
     z3 = z1 + 31.916 * -math.sin(math.radians(55.239))
 
     plt.figure(figsize=(6, 6))
@@ -66,7 +66,7 @@ def plot_arm_2d(x, z, l1, l2, elbow_up=False):
 if __name__ == "__main__":
     l1 = 55
     l2 = 55
-    x = 50
+    x = 0
     z = -110
 
-    plot_arm_2d(x, z, l1, l2, elbow_up=False)
+    plot_arm_2d(x, z, l1, l2, elbow_up=True)

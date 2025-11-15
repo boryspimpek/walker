@@ -1,3 +1,10 @@
+# parametry globalne
+CYCLE_TIME = 4.0
+SWING_WIDTH = 30
+SWING_HEIGHT = 15
+X_OFFSET = 10
+BASE_Z = -90
+T_POINTS = 15
 
-L1 = 80     
-L2 = 80     
+L1 = 55     
+L2 = 55

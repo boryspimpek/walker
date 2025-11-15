@@ -4,7 +4,7 @@ import time
 import numpy as np
 
 from ik import solve_ik_2d
-from servos import prepare_move, move_servo
+from servos import prepare_move, MoveServo
 
 L1 = 80     
 L2 = 80     
@@ -50,8 +50,8 @@ def control():
                 deg1 = math.degrees(t1)
                 deg2 = math.degrees(t2)
                 deg3 = deg1 + deg2
-                move_servo(2, deg1)
-                move_servo(3, deg3)   
+                MoveServo(2, deg1)
+                MoveServo(3, deg3)   
 
                 print(f"X={X} Z={Z} | t1={deg1:.1f} t3={deg3:.1f}")
 
@@ -70,8 +70,8 @@ def sweep_x(min_x=-15, max_x=15, step=1, z_fixed=-155, delay=0.1):
             deg1 = math.degrees(t1)
             deg2 = math.degrees(t2)
             deg3 = deg1 + deg2
-            move_servo(2, deg1)
-            move_servo(3, deg3)
+            MoveServo(2, deg1)
+            MoveServo(3, deg3)
             print(f"X={X} Z={Z} | t1={deg1:.1f} t3={deg3:.1f}")
         else:
             print(f"Poza zasięgiem! X={X} Z={Z}")
@@ -86,8 +86,8 @@ def sweep_x(min_x=-15, max_x=15, step=1, z_fixed=-155, delay=0.1):
             deg1 = math.degrees(t1)
             deg2 = math.degrees(t2)
             deg3 = deg1 + deg2
-            move_servo(2, deg1)
-            move_servo(3, deg3)
+            MoveServo(2, deg1)
+            MoveServo(3, deg3)
             print(f"X={X} Z={Z} | t1={deg1:.1f} t3={deg3:.1f}")
         else:
             print(f"Poza zasięgiem! X={X} Z={Z}")
@@ -124,8 +124,8 @@ def run_cycle():
                 deg1 = math.degrees(t1)
                 deg2 = math.degrees(t2)
                 deg3 = deg1 + deg2
-                move_servo(2, deg1)
-                move_servo(3, deg3)
+                MoveServo(2, deg1)
+                MoveServo(3, deg3)
             time.sleep(0.05)
 
 if __name__ == "__main__":
