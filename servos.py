@@ -1,7 +1,7 @@
 import math
 import time
 from ik import solve_ik_2d
-from config import L1, L2, sts_id, MAX_SPEED, MIN_SPEED, acc, angle_limits, trims
+from config import L1, L2, sts_id, MAX_SPEED, MIN_SPEED, ACC, angle_limits, trims
 
 from st3215 import ST3215
 servo = ST3215('COM3')
@@ -86,14 +86,14 @@ def MoveSync(target_deg):
         print(f"Servo {id}: safe target={safe_target_deg[id]}°, trimmed unit={trimmed_pos}")
 
         servo.SetMode(id, 0)
-        servo.SetAcceleration(id, acc)
+        servo.SetAcceleration(id, ACC)
         servo.SetSpeed(id, speed)
 
         servo.WritePosition(id, trimmed_pos)
 
     print("\n========== MoveSync END ==========\n")
 
-def MoveServo(id, angle_deg):
+def MoveServo(id, angle_deg, speed=MAX_SPEED, acc=ACC):
     try:
         safe_angle = check_angle_limit(id, angle_deg)
         pos = servo.angle_deg_to_servo(safe_angle)
@@ -101,8 +101,8 @@ def MoveServo(id, angle_deg):
 
         servo.SetMode(id, 0)
         servo.SetAcceleration(id, acc)
-        servo.SetSpeed(id, MAX_SPEED)
-        
+        servo.SetSpeed(id, speed)
+
         servo.WritePosition(id, trimmed_pos)
     except Exception as e:
         print(f"Error moving servo {id}: {e}")
@@ -110,7 +110,7 @@ def MoveServo(id, angle_deg):
 def ReturnToNeutral():
     neutral_positions = {1: 90, 2: 90, 3: 90, 4: 90, 5: 90, 6: 90, 7: 90, 8: 90}
     for id, angle in neutral_positions.items():
-        MoveServo(id, angle)
+        MoveServo(id, angle, 500, 50)
 
 def MoveToPoint(x, z, leg):
     if leg == 'right':

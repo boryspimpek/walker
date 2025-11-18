@@ -1,16 +1,17 @@
-CYCLE_TIME = 4.0
+CYCLE_TIME = 3.0
 SWING_WIDTH = 30
 SWING_HEIGHT = 15
 X_OFFSET = -15
 BASE_Z = -90
-MAX_TILT = 20
+FOOT_TILT = 15
+HIP_TILT = 5
 
 L1 = 55     
 L2 = 55
 
-MAX_SPEED = 500
+MAX_SPEED = 2000
 MIN_SPEED = 50
-acc = 250
+ACC = 250
 
 sts_id = [1, 2, 3, 4, 5, 6, 7, 8]   
 

@@ -1,58 +1,69 @@
 import math
 import time
-import numpy as np
 
 from ik import solve_ik_2d
 from servos import MoveServo, ReturnToNeutral, MoveToPoint, steps
-from config import L1, L2, CYCLE_TIME, SWING_WIDTH, SWING_HEIGHT, X_OFFSET, BASE_Z, MAX_TILT
+from config import L1, L2, CYCLE_TIME, SWING_WIDTH, SWING_HEIGHT, X_OFFSET, BASE_Z, FOOT_TILT, HIP_TILT
+
+SWING_TIME = 0.35
 
 def trot_gait(phase):
     half_width = SWING_WIDTH / 2
-
-    if phase < 0.5:
-        angle = math.pi * (1 - 2 * phase)
-        x = half_width * math.cos(angle) + X_OFFSET
+    
+    if phase < SWING_TIME:
+        # Normalizuj phase do [0,1] w fazie swing
+        t_swing = phase / SWING_TIME
+        angle = math.pi * (1 - t_swing)
+        x = -half_width * math.cos(angle) + X_OFFSET
         z = BASE_Z + SWING_HEIGHT * math.sin(angle)
     else:
-        t = (phase - 0.5) * 2
-        x = half_width - SWING_WIDTH * t + X_OFFSET
+        # Normalizuj phase do [0,1] w fazie support
+        t_support = (phase - SWING_TIME) / (1 - SWING_TIME)
+        x = -half_width + SWING_WIDTH * t_support + X_OFFSET
         z = BASE_Z
-
+    
     return x, z
 
 def tilt(phase):
-    """
-    Dwukierunkowy rounded square wave (tam i z powrotem).
-    phase ∈ [0, 1]
-    """
-    MID_1 = 0.25
-    MID_2 = 0.5
-    MID_3 = 0.75
-
-    if phase < MID_1:
+    if phase < SWING_TIME:
         # stałe LEWO
-        return 90 - MAX_TILT
+        left_foot_tilt = 90 - FOOT_TILT
+        right_foot_tilt = 90 - FOOT_TILT
+        left_hip_tilt = 90 - HIP_TILT
+        right_hip_tilt = 90
+        print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
+        return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
 
-    elif phase < MID_2:
+    elif phase < 0.5:
         # przejazd LEWO -> PRAWO
-        t = (phase - MID_1) / (MID_2 - MID_1)
-        t_smooth = 3*t*t - 2*t*t*t
-        return (90 - MAX_TILT) + 2 * MAX_TILT * t_smooth
+        progress = (phase - SWING_TIME) / (0.5 - SWING_TIME)  # 0 to 1
+        left_foot_tilt = 90 - FOOT_TILT + (2 * FOOT_TILT * progress)
+        right_foot_tilt = 90 - FOOT_TILT + (2 * FOOT_TILT * progress)
+        left_hip_tilt = 90 - HIP_TILT + (HIP_TILT * progress)
+        right_hip_tilt = 90 + (HIP_TILT * progress)
+        print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
+        return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
 
-    elif phase < MID_3:
+    elif phase < 0.5 + SWING_TIME:
         # stałe PRAWO
-        return 90 + MAX_TILT
+        left_foot_tilt = 90 + FOOT_TILT
+        right_foot_tilt = 90 + FOOT_TILT
+        left_hip_tilt = 90
+        right_hip_tilt = 90 + HIP_TILT
+        print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
+        return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
 
     else:
         # przejazd PRAWO -> LEWO
-        t = (phase - MID_3) / (MID_3 - MID_2)
-        t_smooth = 3*t*t - 2*t*t*t
-        return (90 + MAX_TILT) - 2 * MAX_TILT * t_smooth
-
+        progress = (phase - (0.5 + SWING_TIME)) / (1.0 - (0.5 + SWING_TIME))  # 0 to 1
+        left_foot_tilt = 90 + FOOT_TILT - (2 * FOOT_TILT * progress)
+        right_foot_tilt = 90 + FOOT_TILT - (2 * FOOT_TILT * progress)
+        left_hip_tilt = 90 - (HIP_TILT * progress)
+        right_hip_tilt = 90 + HIP_TILT - (HIP_TILT * progress)
+        print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
+        return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
+            
 def runTrotGaitTwoLegs():
-    """
-    Dwunożny trot z naprzemiennym krokiem i tilt/roll.
-    """
     start = time.perf_counter()
 
     while True:
@@ -89,26 +100,20 @@ def runTrotGaitTwoLegs():
             MoveServo(7, deg3_l)  
 
         # ====== Tilt serwa (CoM) ======
-        tilt_angle = tilt(phase)  # tilt zsynchronizowany z cyklem głównym
-        MoveServo(4, tilt_angle)
-        MoveServo(8, tilt_angle)
-        MoveServo(1, tilt_angle)
-        MoveServo(5, tilt_angle)
+        left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt = tilt(phase)
+        
+        # Apply tilt servos
+        MoveServo(8, left_foot_tilt)
+        MoveServo(4, right_foot_tilt)
+        MoveServo(5, left_hip_tilt)
+        MoveServo(1, right_hip_tilt)
 
         # ====== Opóźnienie ======
         time.sleep(0.02)
 
 if __name__ == "__main__":
     try:
-        # PrepareMove()
-
-
-        # runTrotGaitTwoLegs()
-        steps()
-        # MoveToPoint(0, -80)
-        # time.sleep(5)
-        # MoveToPoint(0, -110)
-        # time.sleep(5)
+        runTrotGaitTwoLegs()
     
     except KeyboardInterrupt:
         print("\nPrzerwano program przez Ctrl+C")
