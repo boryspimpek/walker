@@ -108,7 +108,7 @@ def MoveServo(id, angle_deg, speed=MAX_SPEED, acc=ACC):
         print(f"Error moving servo {id}: {e}")
 
 def ReturnToNeutral():
-    neutral_positions = {1: 90, 2: 90, 3: 90, 4: 90, 5: 90, 6: 90, 7: 90, 8: 90}
+    neutral_positions = {1: 90, 2: 52.8, 3: 108.3, 4: 90, 5: 90, 6: 127.2, 7: 71.7, 8: 90}
     for id, angle in neutral_positions.items():
         MoveServo(id, angle, 500, 50)
 

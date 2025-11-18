@@ -3,9 +3,8 @@ import time
 
 from ik import solve_ik_2d
 from servos import MoveServo, ReturnToNeutral, MoveToPoint, steps
-from config import L1, L2, CYCLE_TIME, SWING_WIDTH, SWING_HEIGHT, X_OFFSET, BASE_Z, FOOT_TILT, HIP_TILT
+from config import L1, L2, CYCLE_TIME, SWING_WIDTH, SWING_HEIGHT, SWING_TIME, X_OFFSET, BASE_Z, FOOT_TILT, HIP_TILT
 
-SWING_TIME = 0.35
 
 def trot_gait(phase):
     half_width = SWING_WIDTH / 2
@@ -31,7 +30,7 @@ def tilt(phase):
         right_foot_tilt = 90 - FOOT_TILT
         left_hip_tilt = 90 - HIP_TILT
         right_hip_tilt = 90
-        print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
+        # print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
         return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
 
     elif phase < 0.5:
@@ -41,7 +40,7 @@ def tilt(phase):
         right_foot_tilt = 90 - FOOT_TILT + (2 * FOOT_TILT * progress)
         left_hip_tilt = 90 - HIP_TILT + (HIP_TILT * progress)
         right_hip_tilt = 90 + (HIP_TILT * progress)
-        print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
+        # print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
         return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
 
     elif phase < 0.5 + SWING_TIME:
@@ -50,7 +49,7 @@ def tilt(phase):
         right_foot_tilt = 90 + FOOT_TILT
         left_hip_tilt = 90
         right_hip_tilt = 90 + HIP_TILT
-        print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
+        # print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
         return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
 
     else:
@@ -60,13 +59,14 @@ def tilt(phase):
         right_foot_tilt = 90 + FOOT_TILT - (2 * FOOT_TILT * progress)
         left_hip_tilt = 90 - (HIP_TILT * progress)
         right_hip_tilt = 90 + HIP_TILT - (HIP_TILT * progress)
-        print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
+        # print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
         return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
             
-def runTrotGaitTwoLegs():
+def runTrotGaitTwoLegs(num_cycles=2):
     start = time.perf_counter()
+    end_time = start + (num_cycles * CYCLE_TIME)  # Czas zakończenia
 
-    while True:
+    while time.perf_counter() < end_time:
         now = time.perf_counter()
         dt = now - start
         phase = (dt % CYCLE_TIME) / CYCLE_TIME  # normalizacja do [0,1)
@@ -110,11 +110,12 @@ def runTrotGaitTwoLegs():
 
         # ====== Opóźnienie ======
         time.sleep(0.02)
+    
+    print(f"Zakończono {num_cycles} cykle chodu")
 
 if __name__ == "__main__":
     try:
-        runTrotGaitTwoLegs()
-    
+        runTrotGaitTwoLegs(2)
     except KeyboardInterrupt:
         print("\nPrzerwano program przez Ctrl+C")
     finally:

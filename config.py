@@ -1,6 +1,7 @@
-CYCLE_TIME = 3.0
+CYCLE_TIME = 4.0
 SWING_WIDTH = 30
 SWING_HEIGHT = 15
+SWING_TIME = 0.35 # procent of cycle time
 X_OFFSET = -15
 BASE_Z = -90
 FOOT_TILT = 15
