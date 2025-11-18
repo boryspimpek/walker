@@ -4,15 +4,11 @@ import time
 
 servo = ST3215('COM3')
 
-# Lista ID serw
 sts_id = [1, 2, 3, 4, 5, 6, 7, 8]
 
-# Pozycje startowe wszystkich serw
 positions = {sid: 1024 for sid in sts_id}
 initial_positions = positions.copy()
 
-# Mapowanie klawiszy do serw
-# Każde serwo ma dwa klawisze: (w lewo, w prawo)
 servo_keys = {
     1: ('q', 'a'),
     2: ('w', 's'),
@@ -24,10 +20,9 @@ servo_keys = {
     8: ('i', 'k'),
 }
 
-STEP = 5  # krok ruchu
+STEP = 5  
 SPEED = 200
 ACC = 10
-
 
 def center_all_servos():
     print("Ustawiam wszystkie serwa na 1024...")
@@ -35,7 +30,6 @@ def center_all_servos():
         servo.MoveTo(sid, 1024, SPEED, ACC, False)
         time.sleep(0.05)
     print("Gotowe! Wszystkie serwa są w pozycji neutralnej.\n")
-
 
 def trim_servos():
     print("Tryb trimowania uruchomiony.")

@@ -1,69 +1,28 @@
-import keyboard  # pip install keyboard
-from st3215 import ST3215
+import keyboard  
 import time
+from config import angle_limits, trims, sts_id 
+from servos import MoveServo
 
-servo = ST3215('COM3')
-
-# Lista ID serw
-sts_id = [1, 2, 3, 4]
-
-# Mapowanie klawiszy do serw
-# Każde serwo ma dwa klawisze: (w lewo, w prawo)
 servo_keys = {
     1: ('q', 'a'),
     2: ('w', 's'),
     3: ('e', 'd'),
     4: ('r', 'f'),
+    5: ('t', 'g'),
+    6: ('y', 'h'),
+    7: ('u', 'j'),
+    8: ('i', 'k'),
 }
 
-STEP = 5  # krok ruchu
-SPEED = 800
-ACC = 10
-
-angle_limits = {
-    1: (0, 180), 2: (30, 150), 3: (50, 160), 4: (85, 95),
-    }
-
-trims = {
-    1: -40, 2: -155, 3: -215, 4: 15,
-    }
-
-# Pozycje startowe wszystkich serw
+STEP = 2  # krok ruchu
 positions = {sid: 90 for sid in sts_id}
 initial_positions = positions.copy()
-
-for id in sts_id:
-    try:
-        servo.SetMode(id, 0)
-        servo.SetAcceleration(id, ACC)
-        servo.SetSpeed(id, SPEED)
-    except Exception as e:
-        print(f"Error initializing servo {id}: {e}")
-
-def check_angle_limit(id, angle_deg):
-    min_angle, max_angle = angle_limits.get(id, (-180, 180))
-    if angle_deg < min_angle:
-        print(f"⚠️ Servo {id}: kąt {angle_deg}° poniżej minimum ({min_angle}°) — ograniczono.")
-        angle_deg = min_angle
-    elif angle_deg > max_angle:
-        print(f"⚠️ Servo {id}: kąt {angle_deg}° powyżej maksimum ({max_angle}°) — ograniczono.")
-        angle_deg = max_angle
-    return angle_deg
-
-def move_servo(id, angle_deg):
-    try:
-        safe_angle = check_angle_limit(id, angle_deg)
-        pos = servo.angle_deg_to_servo(safe_angle)
-        trimmed_pos = pos + trims.get(id, 0)
-        servo.WritePosition(id, trimmed_pos)
-    except Exception as e:
-        print(f"Error moving servo {id}: {e}")
 
 def center_all_servos():
     print("Ustawiam wszystkie serwa na 90")
     for sid in sts_id:
-        move_servo(sid, 90)
-        time.sleep(1)
+        MoveServo(sid, 90)
+        time.sleep(0.5)
     print("Gotowe! Wszystkie serwa są w pozycji neutralnej.\n")
 
 def move():
@@ -76,13 +35,13 @@ def move():
         for sid, (left, right) in servo_keys.items():
             if keyboard.is_pressed(left):
                 positions[sid] = max(angle_limits[sid][0], positions[sid] - STEP)
-                move_servo(sid, positions[sid])
+                MoveServo(sid, positions[sid])
                 print(f"Serwo {sid}: {positions[sid]}")
                 time.sleep(0.1)
 
             elif keyboard.is_pressed(right):
                 positions[sid] = min(angle_limits[sid][1], positions[sid] + STEP)
-                move_servo(sid, positions[sid])
+                MoveServo(sid, positions[sid])
                 print(f"Serwo {sid}: {positions[sid]}")
                 time.sleep(0.1)
 

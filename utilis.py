@@ -3,26 +3,34 @@ import math
 from st3215 import ST3215
 
 servo = ST3215('COM3')
+sts_id = [1, 2, 3, 4, 5, 6, 7, 8]   
 
 
 ######################################################## List servos
 # print(servos := servo.ListServos())
 
 ######################################################## Ping servo
-# print(alive := servo.PingServo(1))
+# print(alive := servo.PingServo(7))
 
 ######################################################## Change ID of servo
-# servo.ChangeId(2, 4)
+# servo.ChangeId(8, 7)
 # time.sleep(1)
-# print(servos := servo.ListServos())
+# print(alive := servo.PingServo(7))
 
 ######################################################## Define middle point
-# id = 8
+# id = 1
 # servo.DefineMiddle(id)
 # time.sleep(5)
 # position = servo.ReadPosition(id)
 # angle = servo.servo_to_angle_deg(position)
 # print(f"Servo {id} position: {position}, angle: {angle}°")
+
+######################################################## Check positions
+positions = {}
+for id in sts_id:
+    position = servo.ReadPosition(id)
+    positions[id] = position
+    print(positions)
 
 
 # servo.MoveTo(1, 1024, 200, 10, True)

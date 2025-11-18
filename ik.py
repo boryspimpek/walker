@@ -18,6 +18,6 @@ def solve_ik_2d(x_target, z_target, l1, l2, elbow_up=False):
 
     alpha = theta1
     betha = theta1 + theta2
-    print(math.degrees(alpha), math.degrees(betha))
+    # print(math.degrees(alpha), math.degrees(betha))
 
     return -theta1, -theta2

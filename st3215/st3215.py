@@ -50,7 +50,6 @@ class ST3215(protocol_packet_handler):
             return False
         return True
 
-
     def ListServos(self):
         """
         Scan the bus to determine all servo present
@@ -63,7 +62,6 @@ class ST3215(protocol_packet_handler):
                 servos.append(id)
 
         return servos
-
 
     def ReadLoad(self, sts_id):
         """
@@ -122,7 +120,6 @@ class ST3215(protocol_packet_handler):
         else:
             return None
 
-
     def ReadAccelaration(self, sts_id):
         """
         Current value of the acceleration of the servo. 
@@ -136,7 +133,6 @@ class ST3215(protocol_packet_handler):
             return acc
         else:
             return None
-
 
     def ReadMode(self, sts_id):
         """
@@ -156,7 +152,6 @@ class ST3215(protocol_packet_handler):
         else:
             return None
 
-
     def ReadCorrection(self, sts_id):
         """
         Current value of position correction for the servo. 
@@ -175,7 +170,6 @@ class ST3215(protocol_packet_handler):
         else:
             return None
 
-
     def IsMoving(self, sts_id):
         """
         Is the servo moving
@@ -189,7 +183,6 @@ class ST3215(protocol_packet_handler):
             return bool(moving)
         else:
             return None
-
 
     def SetAcceleration(self, sts_id, acc):
         """
@@ -207,7 +200,6 @@ class ST3215(protocol_packet_handler):
         else:
             return None
 
-
     def SetSpeed(self, sts_id, speed):
         """
         Configure the Speed value for the servo
@@ -224,7 +216,6 @@ class ST3215(protocol_packet_handler):
         else:
             return None
 
-
     def StopServo(self, sts_id):
         """
         Stop the servo (Set torque to 0)
@@ -240,7 +231,6 @@ class ST3215(protocol_packet_handler):
         else:
             return None
 
-
     def StartServo(self, sts_id):
         """
         Start the servo (Set torque to 1)
@@ -251,8 +241,6 @@ class ST3215(protocol_packet_handler):
         """
         txpacket = [1]
         return self.writeTxRx(sts_id, STS_TORQUE_ENABLE, len(txpacket), txpacket)
-
-
 
     def SetMode(self, sts_id, mode):
         """
@@ -265,8 +253,6 @@ class ST3215(protocol_packet_handler):
         """
         txpacket = [mode]
         return self.writeTxRx(sts_id, STS_MODE, len(txpacket), txpacket)
-
-
 
     def CorrectPosition(self, sts_id, correction):
         """
@@ -287,7 +273,6 @@ class ST3215(protocol_packet_handler):
             txpacket[1] |= (1 << 3)
 
         return self.writeTxRx(sts_id, STS_OFS_L, len(txpacket), txpacket)
-
 
     def Rotate(self, sts_id, speed):
         """
@@ -311,8 +296,6 @@ class ST3215(protocol_packet_handler):
             txpacket[1] |= (1 << 7)
 
         return self.writeTxRx(sts_id, STS_GOAL_SPEED_L, len(txpacket), txpacket)
-
-
 
     def getBlockPosition(self, sts_id):
         """
@@ -347,8 +330,6 @@ class ST3215(protocol_packet_handler):
 
             time.sleep(0.02)
 
-
-
     def DefineMiddle(self, sts_id):
         """
         Define the 2048 position (Set torque to 128)
@@ -363,8 +344,6 @@ class ST3215(protocol_packet_handler):
             return True
         else:
             return None
-
-
 
     def TareServo(self, sts_id):
         """
@@ -418,8 +397,6 @@ class ST3215(protocol_packet_handler):
 
         return min_position, max_position
 
-
-
     def MoveTo(self, sts_id, position, speed = 2400, acc = 50, wait = False):
         """
         Move the servo to a pre defined position
@@ -466,8 +443,6 @@ class ST3215(protocol_packet_handler):
 
         return True
 
-
-
     def WritePosition(self, sts_id, position):
         txpacket = [self.sts_lobyte(position), self.sts_hibyte(position)]
         comm, error = self.writeTxRx(sts_id, STS_GOAL_POSITION_L, len(txpacket), txpacket)
@@ -475,7 +450,6 @@ class ST3215(protocol_packet_handler):
             return True
         else:
             return None
-
 
     def ReadStatus(self, sts_id):
         """
@@ -502,7 +476,6 @@ class ST3215(protocol_packet_handler):
 
         return status
 
-
     def ReadPosition(self, sts_id):
         """
         Get the current position
@@ -527,8 +500,6 @@ class ST3215(protocol_packet_handler):
         """
         sts_present_speed, sts_comm_result, sts_error = self.read2ByteTxRx(sts_id, STS_PRESENT_SPEED_L)
         return self.sts_tohost(sts_present_speed, 15), sts_comm_result, sts_error
-
-
 
     def LockEprom(self, sts_id):
         """
