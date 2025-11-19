@@ -1,4 +1,4 @@
-CYCLE_TIME = 4.0
+CYCLE_TIME = 8.0
 SWING_WIDTH = 30
 SWING_HEIGHT = 15
 SWING_TIME = 0.35 # procent of cycle time
@@ -11,7 +11,6 @@ L1 = 55
 L2 = 55
 
 MAX_SPEED = 2000
-MIN_SPEED = 50
 ACC = 250
 
 sts_id = [1, 2, 3, 4, 5, 6, 7, 8]   

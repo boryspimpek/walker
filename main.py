@@ -2,26 +2,38 @@ import math
 import time
 
 from ik import solve_ik_2d
-from servos import MoveServo, ReturnToNeutral, MoveToPoint, steps
+from servos import MoveServo, MoveSync, ReturnToNeutral, MoveToPoint, steps
 from config import L1, L2, CYCLE_TIME, SWING_WIDTH, SWING_HEIGHT, SWING_TIME, X_OFFSET, BASE_Z, FOOT_TILT, HIP_TILT
-
+sts_id = [1, 2, 3, 4, 5, 6, 7, 8]   
 
 def trot_gait(phase):
     half_width = SWING_WIDTH / 2
     
     if phase < SWING_TIME:
-        # Normalizuj phase do [0,1] w fazie swing
         t_swing = phase / SWING_TIME
         angle = math.pi * (1 - t_swing)
         x = -half_width * math.cos(angle) + X_OFFSET
         z = BASE_Z + SWING_HEIGHT * math.sin(angle)
     else:
-        # Normalizuj phase do [0,1] w fazie support
         t_support = (phase - SWING_TIME) / (1 - SWING_TIME)
         x = -half_width + SWING_WIDTH * t_support + X_OFFSET
         z = BASE_Z
-    
     return x, z
+
+def half_step_init(phase):
+    half_width = SWING_WIDTH / 2
+    
+    # Ruch sinusoidalny dla płynności
+    t = phase  # [0,1]
+    angle = math.pi * t
+    
+    x_l = -half_width * (1 - math.cos(angle))/2 + X_OFFSET
+    z_l = BASE_Z + SWING_HEIGHT/2 * math.sin(angle)
+    
+    x_r = half_width * (1 - math.cos(angle))/2 + X_OFFSET
+    z_r = BASE_Z
+    
+    return  x_l, z_l, x_r, z_r
 
 def tilt(phase):
     if phase < SWING_TIME:
@@ -113,11 +125,13 @@ def runTrotGaitTwoLegs(num_cycles=2):
     
     print(f"Zakończono {num_cycles} cykle chodu")
 
-if __name__ == "__main__":
-    try:
-        runTrotGaitTwoLegs(2)
-    except KeyboardInterrupt:
-        print("\nPrzerwano program przez Ctrl+C")
-    finally:
-        ReturnToNeutral()
-        print("Powrót do pozycji neutralnej zakończony")
+
+# MoveToPoint(-15, -100, "right", 500, 100)
+# MoveToPoint(-15, -100, "left", 500, 100)
+
+runTrotGaitTwoLegs(4)
+ReturnToNeutral()
+
+
+# runTrotGaitTwoLegs(2)
+# steps(500, 100)
