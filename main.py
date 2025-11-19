@@ -4,7 +4,6 @@ import time
 from ik import solve_ik_2d
 from servos import MoveServo, MoveSyncTime, MoveSyncTime, ReturnToNeutral, MoveToPoint, steps
 from config import L1, L2, CYCLE_TIME, SWING_WIDTH, SWING_HEIGHT, SWING_TIME, X_OFFSET, BASE_Z, FOOT_TILT, HIP_TILT
-sts_id = [1, 2, 3, 4, 5, 6, 7, 8]   
 
 def trot_gait(phase):
     half_width = SWING_WIDTH / 2
@@ -221,20 +220,21 @@ MoveSyncTime({
     4: 90 + FOOT_TILT,
     5: 90, 
     1: 90 + HIP_TILT   
-}, duration=(0.5 - SWING_TIME) * CYCLE_TIME * 0.5)
+}, 0.8, 10 )
 
-runHalfStepInit(CYCLE_TIME * SWING_TIME / 2)
+runHalfStepInit(CYCLE_TIME * SWING_TIME)
 
 MoveSyncTime({
     8: 90 - FOOT_TILT,   
     4: 90 - FOOT_TILT,
     5: 90 - HIP_TILT, 
     1: 90    
-}, duration=(0.5 - SWING_TIME) * CYCLE_TIME * 0.5)
+}, 0.8, 10 )
 
-runTrotGaitTwoLegs(1)
+runTrotGaitTwoLegs(4)
 
-runHalfStepEnd(CYCLE_TIME * SWING_TIME / 2)
+runHalfStepEnd(CYCLE_TIME * SWING_TIME)
+time.sleep(0.3)
 
 ReturnToNeutral()
 
