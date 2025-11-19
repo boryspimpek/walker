@@ -35,11 +35,22 @@ def half_step_init(phase):
     
     return  x_l, z_l, x_r, z_r
 
-def runHalfStepInit(duration=1.0):
-    """
-    Wykonuje ruch inicjalizujący do pozycji startowej trot gait
-    duration: czas trwania ruchu w sekundach
-    """
+def half_step_end(phase):
+    half_width = SWING_WIDTH / 2
+    t = phase  # [0,1]
+    angle = math.pi * t
+
+    # Lewa noga idzie od -half_width do środka
+    x_l = -half_width * (1 + math.cos(angle))/2 + X_OFFSET
+    z_l = BASE_Z
+
+    # Prawa noga idzie od +half_width do środka
+    x_r = half_width * (1 + math.cos(angle))/2 + X_OFFSET
+    z_r = BASE_Z + SWING_HEIGHT/2 * math.sin(angle)
+
+    return x_l, z_l, x_r, z_r
+
+def runHalfStepInit(duration):
     start = time.perf_counter()
     end_time = start + duration
 
@@ -50,6 +61,43 @@ def runHalfStepInit(duration=1.0):
 
         # Oblicz pozycje stóp z funkcji inicjalizującej
         x_l, z_l, x_r, z_r = half_step_init(phase)
+
+        # ====== IK dla lewej nogi (przód) ======
+        ik_l = solve_ik_2d(x_l, z_l, L1, L2, elbow_up=True)
+        if ik_l is not None:
+            t1_l, t2_l = ik_l
+            deg1_l = math.degrees(t1_l)
+            deg2_l = math.degrees(t2_l)
+            deg3_l = deg1_l + deg2_l
+            MoveServo(6, deg1_l)  # Lewe biodro
+            MoveServo(7, deg3_l)  # Lewe kolano
+
+        # ====== IK dla prawej nogi (tył) ======
+        ik_r = solve_ik_2d(-x_r, z_r, L1, L2, elbow_up=False)
+        if ik_r is not None:
+            t1_r, t2_r = ik_r
+            deg1_r = math.degrees(t1_r)
+            deg2_r = math.degrees(t2_r)
+            deg3_r = deg1_r + deg2_r
+            MoveServo(2, deg1_r)  # Prawe biodro
+            MoveServo(3, deg3_r)  # Prawe kolano
+
+        # ====== Opóźnienie ======
+        time.sleep(0.02)
+    
+    print(f"Zakończono inicjalizację pozycji startowej w czasie {duration}s")
+
+def runHalfStepEnd(duration):
+    start = time.perf_counter()
+    end_time = start + duration
+
+    while time.perf_counter() < end_time:
+        now = time.perf_counter()
+        dt = now - start
+        phase = dt / duration  # normalizacja do [0,1]
+
+        # Oblicz pozycje stóp z funkcji inicjalizującej
+        x_l, z_l, x_r, z_r = half_step_end(phase)
 
         # ====== IK dla lewej nogi (przód) ======
         ik_l = solve_ik_2d(x_l, z_l, L1, L2, elbow_up=True)
@@ -168,26 +216,25 @@ def runTrotGaitTwoLegs(num_cycles=2):
     print(f"Zakończono {num_cycles} cykle chodu")
 
 
-
 MoveSyncTime({
     8: 90 + FOOT_TILT,   
     4: 90 + FOOT_TILT,
     5: 90, 
     1: 90 + HIP_TILT   
-}, duration=1)
+}, duration=(0.5 - SWING_TIME) * CYCLE_TIME * 0.5)
 
-runHalfStepInit(1.0)
+runHalfStepInit(CYCLE_TIME * SWING_TIME / 2)
 
 MoveSyncTime({
     8: 90 - FOOT_TILT,   
     4: 90 - FOOT_TILT,
     5: 90 - HIP_TILT, 
     1: 90    
-}, duration=1)
+}, duration=(0.5 - SWING_TIME) * CYCLE_TIME * 0.5)
 
-time.sleep(2)
+runTrotGaitTwoLegs(1)
 
-# runTrotGaitTwoLegs(1)
+runHalfStepEnd(CYCLE_TIME * SWING_TIME / 2)
 
 ReturnToNeutral()
 

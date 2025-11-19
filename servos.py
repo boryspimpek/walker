@@ -65,7 +65,6 @@ def MoveSyncSpeed(target_deg, speed=MAX_SPEED, acc=ACC):
         servo.WritePosition(id, trimmed_pos)
 
 def MoveSyncTime(targets, duration, steps=50):
-    # Pobranie pozycji początkowych
     curr_deg = {}
     for sid in targets:          
         unit = servo.ReadPosition(sid)
@@ -76,19 +75,16 @@ def MoveSyncTime(targets, duration, steps=50):
         deg = servo.servo_to_deg(unit_corrected)
         curr_deg[sid] = deg
 
-    # czas między krokami
     delay = duration / steps
 
-    # interpolacja
     for i in range(1, steps + 1):
         ratio = i / steps
         for sid, target_angle in targets.items():
-            start = curr_deg[sid]        # <-- poprawione id -> sid
+            start = curr_deg[sid]        
             current = start + (target_angle - start) * ratio
             MoveServo(sid, current)
         time.sleep(delay)
 
-    # na koniec ustawiamy precyzyjnie docelowe pozycje
     for sid, target_angle in targets.items():
         MoveServo(sid, target_angle)
 
