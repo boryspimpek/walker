@@ -6,7 +6,7 @@ from ik import solve_ik_2d
 from servos import MoveServo
 from config import L1, L2
 
-def control(X=0, Z=-110, STEP=2):
+def control(X=0, Z=-110, STEP=1):
     print("Sterowanie końcówką:")
     print(" W/S = Z+/Z-")
     print(" A/D = X-/X+")

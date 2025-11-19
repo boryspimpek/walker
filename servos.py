@@ -17,7 +17,7 @@ def check_angle_limit(id, angle_deg):
         angle_deg = max_angle
     return angle_deg
 
-def MoveSync(target_deg, speed=MAX_SPEED, acc=ACC):
+def MoveSyncSpeed(target_deg, speed=MAX_SPEED, acc=ACC):
     safe_target_deg = {}
     for id in sts_id:
         try:
@@ -64,7 +64,39 @@ def MoveSync(target_deg, speed=MAX_SPEED, acc=ACC):
 
         servo.WritePosition(id, trimmed_pos)
 
-def MoveServo(id, angle_deg, speed=MAX_SPEED, acc=ACC):
+def MoveSyncTime(targets, duration, steps=50):
+    # Pobranie pozycji początkowych
+    curr_deg = {}
+    for sid in targets:          
+        unit = servo.ReadPosition(sid)
+        if unit is None:
+            return
+
+        unit_corrected = unit - trims.get(sid, 0)
+        deg = servo.servo_to_deg(unit_corrected)
+        curr_deg[sid] = deg
+
+    # czas między krokami
+    delay = duration / steps
+
+    # interpolacja
+    for i in range(1, steps + 1):
+        ratio = i / steps
+        for sid, target_angle in targets.items():
+            start = curr_deg[sid]        # <-- poprawione id -> sid
+            current = start + (target_angle - start) * ratio
+            MoveServo(sid, current)
+        time.sleep(delay)
+
+    # na koniec ustawiamy precyzyjnie docelowe pozycje
+    for sid, target_angle in targets.items():
+        MoveServo(sid, target_angle)
+
+def MoveServo(id, angle_deg, speed=None, acc=None):
+    if speed is None:
+        speed = MAX_SPEED
+    if acc is None:
+        acc = ACC
     try:
         safe_angle = check_angle_limit(id, angle_deg)
         pos = servo.angle_deg_to_servo(safe_angle)
@@ -79,11 +111,16 @@ def MoveServo(id, angle_deg, speed=MAX_SPEED, acc=ACC):
         print(f"Error moving servo {id}: {e}")
 
 def ReturnToNeutral():
-    neutral_positions = {1: 90, 2: 52.8, 3: 108.3, 4: 90, 5: 90, 6: 127.2, 7: 71.7, 8: 90}
-    for id, angle in neutral_positions.items():
-        MoveServo(id, angle, 500, 50)
+    print("Return to neutral")
+    targets = {1: 90, 2: 46.6, 3: 114.5, 4: 90, 5: 90, 6: 133.4, 7: 65.5,  8: 90}
+    MoveSyncTime(targets, 1)
 
-def MoveToPoint(x, z, leg, speed=MAX_SPEED, acc=ACC):
+def MoveToPoint(x, z, leg, speed=None, acc=None):
+    if speed is None:
+        speed = MAX_SPEED
+    if acc is None:
+        acc = ACC
+
     if leg == 'right':
         ik = solve_ik_2d(-x, z, L1, L2, elbow_up=False)
         if ik is not None:
@@ -106,7 +143,7 @@ def steps(speed, acc):
 
     while True:
         for id in sts_id:
-            MoveSync(frame1, speed, acc)
+            MoveSyncSpeed(frame1, speed, acc)
         time.sleep(0.4)
 
         MoveToPoint(0, -80, "left", speed, acc)
@@ -115,11 +152,11 @@ def steps(speed, acc):
         time.sleep(0.9)
 
         for id in sts_id:
-            MoveSync(frame0, speed, acc)
+            MoveSyncSpeed(frame0, speed, acc)
         time.sleep(0.5)
 
         for id in sts_id:
-            MoveSync(frame3, speed, acc)
+            MoveSyncSpeed(frame3, speed, acc)
         time.sleep(0.5)
 
         MoveToPoint(0, -80, "right", speed, acc)
@@ -129,5 +166,5 @@ def steps(speed, acc):
 
 
         for id in sts_id:
-            MoveSync(frame0, speed, acc)
+            MoveSyncSpeed(frame0, speed, acc)
         time.sleep(0.5)
