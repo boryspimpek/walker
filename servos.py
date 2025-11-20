@@ -1,7 +1,7 @@
 import math
 import time
 from ik import solve_ik_2d
-from config import CYCLE_TIME, L1, L2, SWING_TIME, sts_id, MAX_SPEED, ACC, angle_limits, trims
+from config import L1, L2, sts_id, MAX_SPEED, ACC, angle_limits, trims
 
 from st3215 import ST3215
 servo = ST3215('COM3')
@@ -108,8 +108,10 @@ def MoveServo(id, angle_deg, speed=None, acc=None):
 
 def ReturnToNeutral():
     print("Return to neutral")
-    targets = {1: 90, 2: 46.6, 3: 114.5, 4: 90, 5: 90, 6: 133.4, 7: 65.5,  8: 90}
+    targets = {1: 90, 4: 90, 5: 90, 8: 90}
     MoveSyncTime(targets, 0.5, 10)
+    MoveToPoint(-15, -115, "right", 2000, 10)
+    MoveToPoint(-15, -115, "left", 2000, 10)
 
 def MoveToPoint(x, z, leg, speed=None, acc=None):
     if speed is None:
@@ -127,7 +129,6 @@ def MoveToPoint(x, z, leg, speed=None, acc=None):
         ik = solve_ik_2d(x, z, L1, L2, elbow_up=True)
         if ik is not None:
             t1, t2 = ik
-            print(speed, acc)
             MoveServo(6, math.degrees(t1), speed, acc)
             MoveServo(7, math.degrees(t1) + math.degrees(t2), speed, acc)
 

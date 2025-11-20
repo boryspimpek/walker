@@ -3,7 +3,7 @@ import time
 
 from ik import solve_ik_2d
 from servos import MoveServo, MoveSyncTime, MoveSyncTime, ReturnToNeutral, MoveToPoint, steps
-from config import L1, L2, CYCLE_TIME, SWING_WIDTH, SWING_HEIGHT, SWING_TIME, X_OFFSET, BASE_Z, FOOT_TILT, HIP_TILT
+from config import HOLD_TIME, L1, L2, CYCLE_TIME, LEFT_FOOT_TILT, LEFT_HIP_TILT, RIGHT_FOOT_TILT, RIGHT_HIP_TILT, SWING_WIDTH, SWING_HEIGHT, SWING_TIME, X_OFFSET, BASE_Z
 
 def trot_gait(phase):
     half_width = SWING_WIDTH / 2
@@ -121,45 +121,42 @@ def runHalfStepEnd(duration):
         # ====== Opóźnienie ======
         time.sleep(0.02)
     
-    print(f"Zakończono inicjalizację pozycji startowej w czasie {duration}s")
+    print(f"Zakończono inicjalizację pozycji końcowej w czasie {duration}s")
 
 def tilt(phase):
-    if phase < SWING_TIME:
-        # stałe LEWO
-        left_foot_tilt = 90 - FOOT_TILT
-        right_foot_tilt = 90 - FOOT_TILT
-        left_hip_tilt = 90 - HIP_TILT
-        right_hip_tilt = 90
-        # print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
-        return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
 
-    elif phase < 0.5:
-        # przejazd LEWO -> PRAWO
-        progress = (phase - SWING_TIME) / (0.5 - SWING_TIME)  # 0 to 1
-        left_foot_tilt = 90 - FOOT_TILT + (2 * FOOT_TILT * progress)
-        right_foot_tilt = 90 - FOOT_TILT + (2 * FOOT_TILT * progress)
-        left_hip_tilt = 90 - HIP_TILT + (HIP_TILT * progress)
-        right_hip_tilt = 90 + (HIP_TILT * progress)
-        # print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
-        return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
-
-    elif phase < 0.5 + SWING_TIME:
-        # stałe PRAWO
-        left_foot_tilt = 90 + FOOT_TILT
-        right_foot_tilt = 90 + FOOT_TILT
+    # --- FAZA 1: stałe przechylenie w prawo ---
+    if phase < HOLD_TIME:
+        left_foot_tilt = 90 - LEFT_FOOT_TILT
+        right_foot_tilt = 90 - RIGHT_FOOT_TILT
         left_hip_tilt = 90
-        right_hip_tilt = 90 + HIP_TILT
-        # print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
+        right_hip_tilt = 90 - RIGHT_HIP_TILT
         return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
 
+    # --- FAZA 2: przejazd prawo -> lewo ---
+    elif phase < 0.5:
+        progress = (phase - HOLD_TIME) / (0.5 - HOLD_TIME)
+        left_foot_tilt = 90 - LEFT_FOOT_TILT + (2 * LEFT_FOOT_TILT * progress)
+        right_foot_tilt = 90 - RIGHT_FOOT_TILT + (2 * RIGHT_FOOT_TILT * progress)
+        left_hip_tilt = 90 + (LEFT_HIP_TILT * progress)
+        right_hip_tilt = 90 - RIGHT_HIP_TILT + (RIGHT_HIP_TILT * progress)
+        return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
+
+    # --- FAZA 3: stałe przechylenie w lewo ---
+    elif phase < 0.5 + HOLD_TIME:
+        left_foot_tilt = 90 + LEFT_FOOT_TILT
+        right_foot_tilt = 90 + RIGHT_FOOT_TILT
+        left_hip_tilt = 90 + LEFT_HIP_TILT
+        right_hip_tilt = 90
+        return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
+
+    # --- FAZA 4: przejazd lewo -> prawo ---
     else:
-        # przejazd PRAWO -> LEWO
-        progress = (phase - (0.5 + SWING_TIME)) / (1.0 - (0.5 + SWING_TIME))  # 0 to 1
-        left_foot_tilt = 90 + FOOT_TILT - (2 * FOOT_TILT * progress)
-        right_foot_tilt = 90 + FOOT_TILT - (2 * FOOT_TILT * progress)
-        left_hip_tilt = 90 - (HIP_TILT * progress)
-        right_hip_tilt = 90 + HIP_TILT - (HIP_TILT * progress)
-        # print(f"{left_foot_tilt:.0f} {right_foot_tilt:.0f} {left_hip_tilt:.0f} {right_hip_tilt:.0f}")
+        progress = (phase - (0.5 + HOLD_TIME)) / (1.0 - (0.5 + HOLD_TIME))
+        left_foot_tilt = 90 + LEFT_FOOT_TILT - (2 * LEFT_FOOT_TILT * progress)
+        right_foot_tilt = 90 + RIGHT_FOOT_TILT - (2 * RIGHT_FOOT_TILT * progress)
+        left_hip_tilt = 90 + LEFT_HIP_TILT - (LEFT_HIP_TILT * progress)
+        right_hip_tilt = 90 - (RIGHT_HIP_TILT * progress)
         return left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt
             
 def runTrotGaitTwoLegs(num_cycles=2):
@@ -204,10 +201,10 @@ def runTrotGaitTwoLegs(num_cycles=2):
         left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt = tilt(phase)
         
         # Apply tilt servos
-        MoveServo(8, left_foot_tilt)
-        MoveServo(4, right_foot_tilt)
-        MoveServo(5, left_hip_tilt)
-        MoveServo(1, right_hip_tilt)
+        MoveServo(4, left_foot_tilt)
+        MoveServo(8, right_foot_tilt)
+        MoveServo(1, left_hip_tilt)
+        MoveServo(5, right_hip_tilt)
 
         # ====== Opóźnienie ======
         time.sleep(0.02)
@@ -215,26 +212,30 @@ def runTrotGaitTwoLegs(num_cycles=2):
     print(f"Zakończono {num_cycles} cykle chodu")
 
 
-MoveSyncTime({
-    8: 90 + FOOT_TILT,   
-    4: 90 + FOOT_TILT,
-    5: 90, 
-    1: 90 + HIP_TILT   
-}, 0.8, 10 )
+MoveToPoint(-15, -90, "right", 2000, 10)
+MoveToPoint(-15, -90, "left", 2000, 10)
 
-runHalfStepInit(CYCLE_TIME * SWING_TIME)
 
-MoveSyncTime({
-    8: 90 - FOOT_TILT,   
-    4: 90 - FOOT_TILT,
-    5: 90 - HIP_TILT, 
-    1: 90    
-}, 0.8, 10 )
+# MoveSyncTime({
+#     8: 90 + RIGHT_FOOT_TILT,   
+#     4: 90 + LEFT_FOOT_TILT,
+#     5: 90, 
+#     1: 90 + LEFT_HIP_TILT   
+# }, 0.8, 10 )
 
-runTrotGaitTwoLegs(4)
+# runHalfStepInit(CYCLE_TIME * SWING_TIME)
 
-runHalfStepEnd(CYCLE_TIME * SWING_TIME)
-time.sleep(0.3)
+# MoveSyncTime({
+#     8: 90 - RIGHT_FOOT_TILT,   
+#     4: 90 - LEFT_FOOT_TILT,
+#     5: 90 - RIGHT_HIP_TILT, 
+#     1: 90    
+# }, 0.8, 10 )
+
+runTrotGaitTwoLegs(7)
+
+# runHalfStepEnd(CYCLE_TIME * SWING_TIME)
+# time.sleep(0.3)
 
 ReturnToNeutral()
 
