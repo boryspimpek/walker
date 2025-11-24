@@ -1,0 +1,191 @@
+<?xml version="1.0" ?>
+<robot name="Walker">
+
+<link name="base_link">
+  <inertial>
+    <origin xyz="-0.01861959819798001 -0.012416889297422441 -0.0130044897246898" rpy="0 0 0"/>
+    <mass value="0.025300892916588436"/>
+    <inertia ixx="1.2e-05" iyy="1.6e-05" izz="2.3e-05" ixy="0.0" iyz="-0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="servo_1_1">
+  <inertial>
+    <origin xyz="-0.014071537423696281 0.0204063323769757 -0.010000587451382563" rpy="0 0 0"/>
+    <mass value="0.07170047899084656"/>
+    <inertia ixx="1.5e-05" iyy="1e-05" izz="1.8e-05" ixy="0.0" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.0047 0.03275 -0.010001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/servo_1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.0047 0.03275 -0.010001" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/servo_1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="link_1_1">
+  <inertial>
+    <origin xyz="-0.016834582796579626 -0.010548250169441218 0.025590506383698183" rpy="0 0 0"/>
+    <mass value="0.022470651809540873"/>
+    <inertia ixx="1.3e-05" iyy="1.1e-05" izz="1.3e-05" ixy="0.0" iyz="1e-06" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.0 -0.0 -0.0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/link_1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.0 -0.0 -0.0" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/link_1_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="link_2_1">
+  <inertial>
+    <origin xyz="-4.678928251258124e-06 0.01508557458280037 0.03555275451263273" rpy="0 0 0"/>
+    <mass value="0.014086053332653907"/>
+    <inertia ixx="1e-05" iyy="1e-05" izz="3e-06" ixy="0.0" iyz="0.0" ixz="-0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.018668 0.027573 -0.040248" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/link_2_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.018668 0.027573 -0.040248" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/link_2_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="servo_2_1">
+  <inertial>
+    <origin xyz="0.01000010938882091 -0.014099129757245235 0.020384219546632554" rpy="0 0 0"/>
+    <mass value="0.07157194277292904"/>
+    <inertia ixx="1.8e-05" iyy="1.5e-05" izz="1e-05" ixy="0.0" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.028668 -0.001428 -0.072497" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/servo_2_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.028668 -0.001428 -0.072497" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/servo_2_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="link_3_1">
+  <inertial>
+    <origin xyz="0.018984832444847208 -0.018624538320187543 0.012647263573294446" rpy="0 0 0"/>
+    <mass value="0.027923757776916525"/>
+    <inertia ixx="1.6e-05" iyy="1.1e-05" izz="1.2e-05" ixy="0.0" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.018668 -0.006129 -0.105246" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/link_3_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="0.018668 -0.006129 -0.105246" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/link_3_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<link name="link_4_1">
+  <inertial>
+    <origin xyz="0.0009997038256584021 -0.024605786577599133 -0.03250194890764839" rpy="0 0 0"/>
+    <mass value="0.015517300893076201"/>
+    <inertia ixx="1e-05" iyy="4e-06" izz="6e-06" ixy="-0.0" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="-0.007313 -0.012108 -0.090249" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/link_4_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="silver"/>
+  </visual>
+  <collision>
+    <origin xyz="-0.007313 -0.012108 -0.090249" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="leg/Walker_description/meshes/link_4_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="Rigid 40" type="fixed">
+  <origin xyz="-0.0047 -0.03275 0.010001" rpy="0 0 0"/>
+  <parent link="base_link"/>
+  <child link="servo_1_1"/>
+</joint>
+
+<joint name="Revolute 41" type="continuous">
+  <origin xyz="0.0047 0.03275 -0.010001" rpy="0 0 0"/>
+  <parent link="servo_1_1"/>
+  <child link="link_1_1"/>
+  <axis xyz="1.0 -0.0 -0.0"/>
+</joint>
+
+<joint name="Revolute 42" type="continuous">
+  <origin xyz="-0.018668 -0.027573 0.040248" rpy="0 0 0"/>
+  <parent link="link_1_1"/>
+  <child link="link_2_1"/>
+  <axis xyz="-0.0 -1.0 3.8e-05"/>
+</joint>
+
+<joint name="Rigid 43" type="fixed">
+  <origin xyz="-0.01 0.029001 0.032249" rpy="0 0 0"/>
+  <parent link="link_2_1"/>
+  <child link="servo_2_1"/>
+</joint>
+
+<joint name="Revolute 44" type="continuous">
+  <origin xyz="0.01 0.004701 0.032749" rpy="0 0 0"/>
+  <parent link="servo_2_1"/>
+  <child link="link_3_1"/>
+  <axis xyz="0.0 1.0 -3.8e-05"/>
+</joint>
+
+<joint name="Revolute 45" type="continuous">
+  <origin xyz="0.025981 0.005979 -0.014997" rpy="0 0 0"/>
+  <parent link="link_3_1"/>
+  <child link="link_4_1"/>
+  <axis xyz="-0.0 -1.0 3.8e-05"/>
+</joint>
+
+</robot>

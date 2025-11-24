@@ -1,4 +1,4 @@
-CYCLE_TIME = 2.0
+CYCLE_TIME = 5.0
 
 SWING_TIME = 0.35 # procent of cycle time
 SWING_WIDTH = 30
