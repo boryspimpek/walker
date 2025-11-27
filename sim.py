@@ -3,17 +3,12 @@ import pybullet_data
 import time
 import math
 
-
 """
-ROBOT STRUCTURE
-Base: -1
-Link 0: right_hip_1          | Joint: Revolute 85          | Type: REV | Parent: -1     |(roll)
-Link 1: right_thigh_1        | Joint: Revolute 86          | Type: REV | Parent: 0      |(pitch)
-Link 2: right_knee_1         | Joint: Rigid 87             | Type: FIX | Parent: 1 
-Link 3: right_shin_1         | Joint: Revolute 88          | Type: REV | Parent: 2      |(pitch)
-Link 4: right_ankle_1        | Joint: Revolute 89          | Type: REV | Parent: 3      |(pitch)
-Link 5: right_foot_1         | Joint: Revolute 91          | Type: REV | Parent: 4      |(roll)
-Link 6: end_effector_1       | Joint: Rigid 93             | Type: FIX | Parent: 5
+# ROBOT STRUCTURE
+# Base: -1
+# Link 0: Component212_1       | Joint: Revolute 102         | Type: REV | Parent: -1
+# Link 1: Component215_1       | Joint: Revolute 103         | Type: REV | Parent: 0
+# Link 2: Component218_1       | Joint: Revolute 104         | Type: REV | Parent: 1
 """
 
 p.connect(p.GUI)

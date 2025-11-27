@@ -85,27 +85,6 @@
   </collision>
 </link>
 
-<link name="Component214_1">
-  <inertial>
-    <origin xyz="0 0 -0.005" rpy="0 0 0"/>
-    <mass value="0.6358499999999999"/>
-    <inertia ixx="0.000434" iyy="0.000434" izz="0.000858" ixy="0.0" iyz="0.0" ixz="-0.0"/>
-  </inertial>
-  <visual>
-    <origin xyz="-0.0 -0.0 0.22" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/Component214_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-    <material name="silver"/>
-  </visual>
-  <collision>
-    <origin xyz="-0.0 -0.0 0.22" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/Component214_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-  </collision>
-</link>
-
 <joint name="Revolute 102" type="continuous">
   <origin xyz="0.0 -0.015 -0.03" rpy="0 0 0"/>
   <parent link="base_link"/>
@@ -125,12 +104,6 @@
   <parent link="Component215_1"/>
   <child link="Component218_1"/>
   <axis xyz="0.0 1.0 0.0"/>
-</joint>
-
-<joint name="Rigid 105" type="fixed">
-  <origin xyz="0.0 0.015 -0.03" rpy="0 0 0"/>
-  <parent link="Component218_1"/>
-  <child link="Component214_1"/>
 </joint>
 
 </robot>
