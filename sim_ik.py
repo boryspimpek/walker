@@ -1,86 +1,115 @@
 import pybullet as p
 import pybullet_data
-import time
 import numpy as np
+import time
 
-URDF = "walker.urdf"
-
-# === INICJALIZACJA ===
-p.connect(p.GUI)
+# Inicjalizacja PyBullet
+physicsClient = p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, -9.81)
-p.configureDebugVisualizer(p.COV_ENABLE_GUI, 1)
 
-# Podłoże
-plane_id = p.loadURDF("plane.urdf")
+# Załaduj płaszczyznę i robota
+planeId = p.loadURDF("plane.urdf")
+robotId = p.loadURDF("Walker.urdf", [0, 0, 0.5], useFixedBase=True)  # Zmień na swoją ścieżkę
 
-# Robot
-robot_id = p.loadURDF(URDF, basePosition=[0, 0, 0.5], useFixedBase=True)
+# Parametry kamery
+camera_distance = p.addUserDebugParameter("Odległość", 0.5, 10, 0.25)
+camera_yaw = p.addUserDebugParameter("Obrót (yaw)", -180, 180, 45)
+camera_pitch = p.addUserDebugParameter("Nachylenie (pitch)", -89, 89, -30)
+camera_height_offset = p.addUserDebugParameter("Wysokość kamery", -2, 2, 0.0)
 
-# === IDENTYFIKACJA STAWÓW ===
-num_joints = p.getNumJoints(robot_id)
-controllable_joints = []
-for i in range(num_joints):
-    info = p.getJointInfo(robot_id, i)
-    if info[2] == p.JOINT_REVOLUTE:
-        controllable_joints.append(i)
+# Definicja stawów sterowanych (pomijamy stawy FIX)
+controlled_joints = [0, 1, 2]  # Link IDs dla stawów ruchomych
 
-EE_INDEX = num_joints - 1  # Stopa (right_foot_1)
-
-print(f"Stawy do sterowania: {controllable_joints}")
-print(f"End-effector: {EE_INDEX}")
-
-# === SLIDERY - POZYCJA + ORIENTACJA ===
-# Pozycja
-target_x = p.addUserDebugParameter("Target X", -0.3, 0.3, 0.0)
-target_y = p.addUserDebugParameter("Target Y", -0.3, 0.3, 0.0)
-target_z = p.addUserDebugParameter("Target Z", 0.0, 0.8, 0.0)
-
-# Orientacja (kwaterniony lub Euler)
-roll = p.addUserDebugParameter("Roll", -3.14, 3.14, 0.0)
-pitch = p.addUserDebugParameter("Pitch", -3.14, 3.14, 0.0)
-yaw = p.addUserDebugParameter("Yaw", -3.14, 3.14, 0.0)
-
-while True:
-    # Odczyt pozycji docelowej
-    tx = p.readUserDebugParameter(target_x)
-    ty = p.readUserDebugParameter(target_y)
-    tz = p.readUserDebugParameter(target_z)
-    target_pos = [tx, ty, tz]
+# Znajdź rzeczywiste Joint IDs dla tych linków i ustaw niskie tłumienie
+joint_ids = []
+for link_id in controlled_joints:
+    joint_info = p.getJointInfo(robotId, link_id)
+    joint_ids.append(link_id)
+    print(f"Link {link_id}: {joint_info[1].decode('utf-8')} | Joint Type: {joint_info[2]}")
     
-    # Odczyt orientacji (Euler -> Kwaternion)
-    r = p.readUserDebugParameter(roll)
-    p_val = p.readUserDebugParameter(pitch)
-    y = p.readUserDebugParameter(yaw)
-    
-    # Konwersja Euler -> Kwaternion
-    target_orn = p.getQuaternionFromEuler([r, p_val, y])
-    
-    # INVERSE KINEMATICS z orientacją
-    joint_positions = p.calculateInverseKinematics(
-        bodyUniqueId=robot_id,
-        endEffectorLinkIndex=EE_INDEX,
-        targetPosition=target_pos,
-        targetOrientation=target_orn,  # Dodana orientacja!
-        maxNumIterations=200,
-        residualThreshold=0.001
+    # Ustaw niskie wartości tłumienia dla szybszej reakcji
+    p.changeDynamics(robotId, link_id, 
+                     linearDamping=0.0, 
+                     angularDamping=0.0,
+                     jointDamping=0.1)
+
+end_effector_link = 3  # Link ID end effectora
+
+# Pobierz początkową pozycję end effectora
+initial_ee_state = p.getLinkState(robotId, end_effector_link)
+initial_pos = initial_ee_state[0]
+
+# Tworzenie sliderów dla pozycji x, y, z
+x_slider = p.addUserDebugParameter("EE Position X", -0.2, 0.2, initial_pos[0])
+y_slider = p.addUserDebugParameter("EE Position Y", -0.2, 0.2, initial_pos[1])
+z_slider = p.addUserDebugParameter("EE Position Z", 0.275, 0.3, initial_pos[2])
+
+# Orientacja "płaska" względem podłoża
+flat_orientation = p.getQuaternionFromEuler([0, 0, 0])  
+
+def calculate_ik(target_pos, target_orientation):
+    """
+    Oblicza odwrotną kinematykę dla zadanej pozycji i orientacji docelowej
+    """
+    joint_poses = p.calculateInverseKinematics(
+        robotId,
+        end_effector_link,
+        target_pos,
+        targetOrientation=target_orientation,
+        maxNumIterations=100,
+        residualThreshold=1e-5
     )
+    return joint_poses
 
-    # Sterowanie stawami
-    for joint_idx, target_angle in zip(controllable_joints, joint_positions):
-        p.setJointMotorControl2(
-            bodyUniqueId=robot_id,
-            jointIndex=joint_idx,
-            controlMode=p.POSITION_CONTROL,
-            targetPosition=target_angle,
-            targetVelocity=0,  # Chcemy zatrzymać się w pozycji docelowej
-            force=300,       # Maksymalna siła
-            # positionGain=pos_gain,  # Jak agresywnie dążyć do pozycji
-            # velocityGain=vel_gain   # Jak tłumić oscylacje
+try:
+    while True:
+        # Odczytaj wartości ze sliderów
+        target_x = p.readUserDebugParameter(x_slider)
+        target_y = p.readUserDebugParameter(y_slider)
+        target_z = p.readUserDebugParameter(z_slider)
+        
+        target_pos = [target_x, target_y, target_z]
+        
+        # Oblicz IK z wymuszeniem płaskiej orientacji
+        joint_poses = calculate_ik(target_pos, flat_orientation)
+        
+        # Ustaw pozycje stawów z wysoką prędkością i tłumieniem prędkości
+        for i, joint_id in enumerate(controlled_joints):
+            p.setJointMotorControl2(
+                robotId,
+                joint_id,
+                p.POSITION_CONTROL,
+                targetPosition=joint_poses[i],
+                force=2000,
+                maxVelocity=100,  # Zwiększona maksymalna prędkość
+                positionGain=0.3,  # Gain dla kontrolera pozycji (P)
+                velocityGain=1.0   # Gain dla tłumienia prędkości (D)
+            )
+        
+        # Pobierz aktualny stan end effectora
+        ee_state = p.getLinkState(robotId, end_effector_link)
+        current_pos = ee_state[0]
+        current_orn = ee_state[1]
+
+        # Odczytaj parametry kamery
+        distance = p.readUserDebugParameter(camera_distance)
+        yaw = p.readUserDebugParameter(camera_yaw)
+        pitch = p.readUserDebugParameter(camera_pitch)
+        height_offset = p.readUserDebugParameter(camera_height_offset)
+        robot_pos, robot_orn = p.getBasePositionAndOrientation(robotId)
+        # Ustaw kamerę tak, żeby śledziła robota
+        target_position = [robot_pos[0], robot_pos[1], robot_pos[2] + height_offset]
+        p.resetDebugVisualizerCamera(
+            cameraDistance=distance,
+            cameraYaw=yaw,
+            cameraPitch=pitch,
+            cameraTargetPosition=target_position
         )
-
-    # Wizualizacja celu
-    p.addUserDebugLine(target_pos, [tx, ty, tz+0.1], [1, 0, 0], 2)
-    
-    p.stepSimulation()
-    time.sleep(1/240)
+        
+        p.stepSimulation()
+        time.sleep(1./240.)
+        
+except KeyboardInterrupt:
+    print("\nZamykanie symulacji...")
+    p.disconnect()

@@ -5,27 +5,15 @@ Walker_controller:
     publish_rate: 50
 
   # Position Controllers --------------------------------------
-  Revolute 85_position_controller:
+  Revolute 102_position_controller:
     type: effort_controllers/JointPositionController
-    joint: Revolute 85
+    joint: Revolute 102
     pid: {p: 100.0, i: 0.01, d: 10.0}
-  Revolute 86_position_controller:
+  Revolute 103_position_controller:
     type: effort_controllers/JointPositionController
-    joint: Revolute 86
+    joint: Revolute 103
     pid: {p: 100.0, i: 0.01, d: 10.0}
-  Revolute 87_position_controller:
+  Revolute 104_position_controller:
     type: effort_controllers/JointPositionController
-    joint: Revolute 87
-    pid: {p: 100.0, i: 0.01, d: 10.0}
-  Revolute 88_position_controller:
-    type: effort_controllers/JointPositionController
-    joint: Revolute 88
-    pid: {p: 100.0, i: 0.01, d: 10.0}
-  Revolute 89_position_controller:
-    type: effort_controllers/JointPositionController
-    joint: Revolute 89
-    pid: {p: 100.0, i: 0.01, d: 10.0}
-  Revolute 91_position_controller:
-    type: effort_controllers/JointPositionController
-    joint: Revolute 91
+    joint: Revolute 104
     pid: {p: 100.0, i: 0.01, d: 10.0}
