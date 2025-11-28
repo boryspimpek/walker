@@ -92,11 +92,12 @@
   <axis xyz="0.0 1.0 0.0"/>
 </joint>
 
-<joint name="Revolute 103" type="continuous">
+<joint name="Revolute 103" type="revolute">
   <origin xyz="0.0 0.0 -0.08" rpy="0 0 0"/>
   <parent link="Component212_1"/>
   <child link="Component215_1"/>
   <axis xyz="0.0 1.0 0.0"/>
+  <limit lower="0" upper="3.14" effort="100" velocity="1.0"/>
 </joint>
 
 <joint name="Revolute 104" type="continuous">

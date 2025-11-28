@@ -17,7 +17,7 @@ p.setGravity(0, 0, -9.81)
 p.loadURDF("plane.urdf")
 
 robot = p.loadURDF("Walker.urdf", 
-                   basePosition=[0, 0, 0.35], useFixedBase=True)
+                   basePosition=[0, 0, 0.22], useFixedBase=True)
 
 # Dodaj slidery do ręcznego sterowania
 sliders = []
