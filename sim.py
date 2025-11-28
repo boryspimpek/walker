@@ -29,8 +29,8 @@ for i in range(p.getNumJoints(robot)):
 
 # Parametry kamery
 camera_distance = p.addUserDebugParameter("Odległość", 0.5, 10, 0.25)
-camera_yaw = p.addUserDebugParameter("Obrót (yaw)", -180, 180, 45)
-camera_pitch = p.addUserDebugParameter("Nachylenie (pitch)", -89, 89, -30)
+camera_yaw = p.addUserDebugParameter("Obrót (yaw)", -180, 180, 15)
+camera_pitch = p.addUserDebugParameter("Nachylenie (pitch)", -89, 89, -10)
 camera_height_offset = p.addUserDebugParameter("Wysokość kamery", -2, 2, 0.0)
 
 # Pętla symulacji

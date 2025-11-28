@@ -25,7 +25,7 @@ num_joints = p.getNumJoints(robot)
 
 # Parametry kamery (zachowane z oryginalnego kodu)
 camera_distance = p.addUserDebugParameter("Odległość", 0.5, 10, 0.1)
-camera_yaw = p.addUserDebugParameter("Obrót (yaw)", -180, 180, 45)
+camera_yaw = p.addUserDebugParameter("Obrót (yaw)", -180, 180, 15)
 camera_pitch = p.addUserDebugParameter("Nachylenie (pitch)", -89, 89, -8)
 camera_height_offset = p.addUserDebugParameter("Wysokość kamery", -2, 2, 0.0)
 
