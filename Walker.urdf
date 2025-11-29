@@ -4,6 +4,8 @@
 <xacro:include filename="$(find Walker_description)/urdf/materials.xacro" />
 <xacro:include filename="$(find Walker_description)/urdf/Walker.trans" />
 <xacro:include filename="$(find Walker_description)/urdf/Walker.gazebo" />
+
+# wymiary są podane obok nazwy linku, jointy są umiejscowione z boku elementu 10mm od krawędzi
 <link name="base_link"> # 30/30/40
   <inertial>
     <origin xyz="0 0 -0.02" rpy="0 0 0"/>
