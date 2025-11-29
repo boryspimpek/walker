@@ -4,9 +4,9 @@
 <xacro:include filename="$(find Walker_description)/urdf/materials.xacro" />
 <xacro:include filename="$(find Walker_description)/urdf/Walker.trans" />
 <xacro:include filename="$(find Walker_description)/urdf/Walker.gazebo" />
-<link name="base_link">
+<link name="base_link"> # 30/30/40
   <inertial>
-    <origin xyz="-1.8714321332029245e-15 -1.997259480472705e-18 -0.020000000000000004" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.02" rpy="0 0 0"/>
     <mass value="0.2792706971853582"/>
     <inertia ixx="5.8e-05" iyy="5.9e-05" izz="4.2e-05" ixy="-0.0" iyz="-0.0" ixz="-0.0"/>
   </inertial>
@@ -25,9 +25,9 @@
   </collision>
 </link>
 
-<link name="thigh_1">
+<link name="thigh_1"> # 30/30/100
   <inertial>
-    <origin xyz="-2.9424150238887173e-16 -0.014999999999999951 -0.04000000000000016" rpy="0 0 0"/>
+    <origin xyz="0 -0.015 -0.04" rpy="0 0 0"/>
     <mass value="0.7031706971853583"/>
     <inertia ixx="0.000636" iyy="0.000636" izz="0.000106" ixy="-0.0" iyz="-0.0" ixz="-0.0"/>
   </inertial>
@@ -46,9 +46,9 @@
   </collision>
 </link>
 
-<link name="foot_1">
+<link name="knee"> # 30/30/40
   <inertial>
-    <origin xyz="-1.8097355850241483e-15 -0.014999999999999963 -0.009999999999999787" rpy="0 0 0"/>
+    <origin xyz="0 -0.015 -0.01" rpy="0 0 0"/>
     <mass value="0.27927069718535813"/>
     <inertia ixx="5.8e-05" iyy="5.9e-05" izz="4.2e-05" ixy="0.0" iyz="-0.0" ixz="0.0"/>
   </inertial>
@@ -67,9 +67,9 @@
   </collision>
 </link>
 
-<link name="knee_1">
+<link name="shin"> #30/30/100
   <inertial>
-    <origin xyz="-2.4198695768984886e-16 -0.014999999999999927 -0.0399999999999999" rpy="0 0 0"/>
+    <origin xyz="0 -0.015 -0.04" rpy="0 0 0"/>
     <mass value="0.7031706971853583"/>
     <inertia ixx="0.000636" iyy="0.000636" izz="0.000106" ixy="0.0" iyz="0.0" ixz="0.0"/>
   </inertial>
@@ -88,9 +88,9 @@
   </collision>
 </link>
 
-<link name="shin_1">
+<link name="foot"> # 30/30/40
   <inertial>
-    <origin xyz="-1.6853903352155879e-15 -0.014999999999999984 -0.009999999999999593" rpy="0 0 0"/>
+    <origin xyz="0 0 -0.01" rpy="0 0 0"/>
     <mass value="0.27927069718535813"/>
     <inertia ixx="5.8e-05" iyy="5.9e-05" izz="4.2e-05" ixy="0.0" iyz="-0.0" ixz="0.0"/>
   </inertial>
@@ -119,21 +119,21 @@
 <joint name="Revolute 108" type="continuous">
   <origin xyz="0.0 0.0 -0.08" rpy="0 0 0"/>
   <parent link="thigh_1"/>
-  <child link="foot_1"/>
+  <child link="knee"/>
   <axis xyz="-0.0 1.0 -0.0"/>
 </joint>
 
 <joint name="Revolute 109" type="continuous">
   <origin xyz="0.0 0.0 -0.02" rpy="0 0 0"/>
-  <parent link="foot_1"/>
-  <child link="knee_1"/>
+  <parent link="knee"/>
+  <child link="shin"/>
   <axis xyz="0.0 1.0 -0.0"/>
 </joint>
 
 <joint name="Revolute 110" type="continuous">
   <origin xyz="0.0 0.0 -0.08" rpy="0 0 0"/>
-  <parent link="knee_1"/>
-  <child link="shin_1"/>
+  <parent link="shin"/>
+  <child link="foot"/>
   <axis xyz="0.0 1.0 -0.0"/>
 </joint>
 
