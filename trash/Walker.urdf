@@ -3,18 +3,17 @@
 
 <link name="base_link">
   <inertial>
-    <origin xyz="-0.00010571754247093385 1.8163162281162088e-06 -0.024732556808869856" rpy="0 0 0"/>
-    <mass value="0.027166123584619145"/>
-    <inertia ixx="7e-06" iyy="8e-06" izz="4e-06" ixy="-0.0" iyz="-0.0" ixz="-0.0"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <mass value="0.27927069718535813"/>
+    <inertia ixx="5.8e-05" iyy="5.9e-05" izz="4.2e-05" ixy="-0.0" iyz="0.0" ixz="0.0"/>
   </inertial>
   <visual>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
       <mesh filename="leg/Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="red">
-      <color rgba="1 0 0 1"/>
-    </material>  </visual>
+    <material name="silver"/>
+  </visual>
   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
@@ -23,212 +22,91 @@
   </collision>
 </link>
 
-<link name="right_hip_1">
+<link name="Component212_1">
   <inertial>
-    <origin xyz="-0.017105024659593876 1.0351122289178514e-06 -0.022813611378691555" rpy="0 0 0"/>
-    <mass value="0.015518960743906235"/>
-    <inertia ixx="9e-06" iyy="9e-06" izz="1e-05" ixy="0.0" iyz="-0.0" ixz="0.0"/>
+    <origin xyz="0 0.015 -0.04" rpy="0 0 0"/>
+    <mass value="0.7031706971853583"/>
+    <inertia ixx="0.000636" iyy="0.000636" izz="0.000106" ixy="0.0" iyz="-0.0" ixz="-0.0"/>
   </inertial>
   <visual>
-    <origin xyz="-0.018625 0.0 0.037125" rpy="0 0 0"/>
+    <origin xyz="-0.0 0.015 0.03" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_hip_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="leg/Walker_description/meshes/Component212_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="yellow">
-      <color rgba="1 1 0 1"/>
-    </material>
+    <material name="silver"/>
   </visual>
   <collision>
-    <origin xyz="-0.018625 0.0 0.037125" rpy="0 0 0"/>
+    <origin xyz="-0.0 0.015 0.03" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_hip_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="leg/Walker_description/meshes/Component212_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
 
-<link name="right_thigh_1">
+<link name="Component215_1">
   <inertial>
-    <origin xyz="2.4433274462849063e-07 -0.01869148569404417 -0.032500369155052805" rpy="0 0 0"/>
-    <mass value="0.04841117262972764"/>
-    <inertia ixx="3.6e-05" iyy="3.5e-05" izz="7e-06" ixy="0.0" iyz="0.0" ixz="0.0"/>
+    <origin xyz="0 0.015 -0.04" rpy="0 0 0"/>
+    <mass value="0.7031706971853583"/>
+    <inertia ixx="0.000636" iyy="0.000636" izz="0.000106" ixy="0.0" iyz="-0.0" ixz="0.0"/>
   </inertial>
   <visual>
-    <origin xyz="1e-06 -0.018625 0.077732" rpy="0 0 0"/>
+    <origin xyz="-0.0 0.015 0.11" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_thigh_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="leg/Walker_description/meshes/Component215_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="green">
-      <color rgba="0 1 0 1"/>
-    </material>
+    <material name="silver"/>
   </visual>
   <collision>
-    <origin xyz="1e-06 -0.018625 0.077732" rpy="0 0 0"/>
+    <origin xyz="-0.0 0.015 0.11" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_thigh_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="leg/Walker_description/meshes/Component215_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
 
-<link name="right_knee_1">
+<link name="Component218_1">
   <inertial>
-    <origin xyz="0.017040716623108798 -0.015050331668020894 -0.012997524469482657" rpy="0 0 0"/>
-    <mass value="0.03724513708022543"/>
-    <inertia ixx="2.6e-05" iyy="2e-05" izz="1.7e-05" ixy="0.0" iyz="0.0" ixz="0.0"/>
+    <origin xyz="0 0.015 -0.01" rpy="0 0 0"/>
+    <mass value="0.27927069718535813"/>
+    <inertia ixx="5.8e-05" iyy="5.9e-05" izz="4.2e-05" ixy="-0.0" iyz="0.0" ixz="0.0"/>
   </inertial>
   <visual>
-    <origin xyz="1e-06 -0.015075 0.142732" rpy="0 0 0"/>
+    <origin xyz="-0.0 0.015 0.19" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_knee_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="leg/Walker_description/meshes/Component218_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="blue">
-      <color rgba="0 0 1 1"/>
-    </material>
+    <material name="silver"/>
   </visual>
   <collision>
-    <origin xyz="1e-06 -0.015075 0.142732" rpy="0 0 0"/>
+    <origin xyz="-0.0 0.015 0.19" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_knee_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="leg/Walker_description/meshes/Component218_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
 
-<link name="right_shin_1">
-  <inertial>
-    <origin xyz="1.2857045690875148e-07 -0.018688658272153748 -0.03250291380762313" rpy="0 0 0"/>
-    <mass value="0.04838185238285193"/>
-    <inertia ixx="3.6e-05" iyy="3.5e-05" izz="7e-06" ixy="0.0" iyz="0.0" ixz="0.0"/>
-  </inertial>
-  <visual>
-    <origin xyz="1e-06 -0.018625 0.173713" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_shin_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-    <material name="green">
-      <color rgba="0 1 0 1"/>
-    </material>
-  </visual>
-  <collision>
-    <origin xyz="1e-06 -0.018625 0.173713" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_shin_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-  </collision>
-</link>
-
-<link name="right_ankle_1">
-  <inertial>
-    <origin xyz="0.0018231198084157393 -0.013311493176701538 -0.014202277659047025" rpy="0 0 0"/>
-    <mass value="0.02207862348176061"/>
-    <inertia ixx="1.2e-05" iyy="1.1e-05" izz="1.3e-05" ixy="0.0" iyz="1e-06" ixz="-0.0"/>
-  </inertial>
-  <visual>
-    <origin xyz="1e-06 -0.015075 0.238713" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_ankle_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-    <material name="yellow">
-      <color rgba="1 1 0 1"/>
-    </material>
-  </visual>
-  <collision>
-    <origin xyz="1e-06 -0.015075 0.238713" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_ankle_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-  </collision>
-</link>
-
-<link name="right_foot_1">
-  <inertial>
-    <origin xyz="-0.018690575105815482 -0.012244336780487022 -0.002470224535695009" rpy="0 0 0"/>
-    <mass value="0.031643029734136574"/>
-    <inertia ixx="1e-05" iyy="6e-06" izz="9e-06" ixy="0.0" iyz="-0.0" ixz="0.0"/>
-  </inertial>
-  <visual>
-    <origin xyz="-0.018625 -0.0125 0.27896" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_foot_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-    <material name="red">
-      <color rgba="1 0 0 1"/>
-    </material>
-  </visual>
-  <collision>
-    <origin xyz="-0.018625 -0.0125 0.27896" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/right_foot_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-  </collision>
-</link>
-
-<link name="end_effector_1">
-  <inertial>
-    <origin xyz="1.7261678311586465e-08 7.517505846557406e-08 -0.002499758966845289" rpy="0 0 0"/>
-    <mass value="0.010298171671797838"/>
-    <inertia ixx="2e-06" iyy="4e-06" izz="6e-06" ixy="0.0" iyz="-0.0" ixz="-0.0"/>
-  </inertial>
-  <visual>
-    <origin xyz="-0.0 -0.0 0.299035" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/end_effector_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-    <material name="blue">
-      <color rgba="0 0 1 1"/>
-    </material>
-  </visual>
-  <collision>
-    <origin xyz="-0.0 -0.0 0.299035" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/end_effector_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-  </collision>
-</link>
-
-<joint name="Revolute 85" type="continuous">
-  <origin xyz="0.018625 0.0 -0.037125" rpy="0 0 0"/>
+<joint name="Revolute 102" type="revolute">
+  <origin xyz="0.0 -0.015 -0.03" rpy="0 0 0"/>
   <parent link="base_link"/>
-  <child link="right_hip_1"/>
-  <axis xyz="1.0 0.0 -0.0"/>
+  <child link="Component212_1"/>
+  <axis xyz="0.0 1.0 0.0"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="Revolute 86" type="continuous">
-  <origin xyz="-0.018626 0.018625 -0.040607" rpy="0 0 0"/>
-  <parent link="right_hip_1"/>
-  <child link="right_thigh_1"/>
-  <axis xyz="0.0 -1.0 -0.0"/>
+<joint name="Revolute 103" type="revolute">
+  <origin xyz="0.0 0.0 -0.08" rpy="0 0 0"/>
+  <parent link="Component212_1"/>
+  <child link="Component215_1"/>
+  <axis xyz="0.0 1.0 0.0"/>
+  <limit lower="0" upper="3.14" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="Rigid 87" type="fixed">
-  <origin xyz="0.0 -0.00355 -0.065" rpy="0 0 0"/>
-  <parent link="right_thigh_1"/>
-  <child link="right_knee_1"/>
-</joint>
-
-<joint name="Revolute 88" type="continuous">
-  <origin xyz="0.0 0.00355 -0.030981" rpy="0 0 0"/>
-  <parent link="right_knee_1"/>
-  <child link="right_shin_1"/>
-  <axis xyz="-0.0 1.0 0.0"/>
-</joint>
-
-<joint name="Revolute 89" type="continuous">
-  <origin xyz="0.0 -0.00355 -0.065" rpy="0 0 0"/>
-  <parent link="right_shin_1"/>
-  <child link="right_ankle_1"/>
-  <axis xyz="0.0 -1.0 -0.0"/>
-</joint>
-
-<joint name="Revolute 91" type="continuous">
-  <origin xyz="0.018626 -0.002575 -0.040247" rpy="0 0 0"/>
-  <parent link="right_ankle_1"/>
-  <child link="right_foot_1"/>
-  <axis xyz="1.0 0.0 0.0"/>
-</joint>
-
-<joint name="Rigid 93" type="fixed">
-  <origin xyz="-0.018625 -0.0125 -0.020075" rpy="0 0 0"/>
-  <parent link="right_foot_1"/>
-  <child link="end_effector_1"/>
+<joint name="Revolute 104" type="revolute">
+  <origin xyz="0.0 0.0 -0.08" rpy="0 0 0"/>
+  <parent link="Component215_1"/>
+  <child link="Component218_1"/>
+  <axis xyz="0.0 1.0 0.0"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
 </robot>

@@ -20,7 +20,7 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, -9.81)
 p.loadURDF("plane.urdf")
 
-robot = p.loadURDF("Walker.urdf", [0, 0, 0.22], useFixedBase=True)
+robot = p.loadURDF("Walker.urdf", [0, 0, 0.4], useFixedBase=True)
 num_joints = p.getNumJoints(robot)
 
 # Parametry kamery (zachowane z oryginalnego kodu)
@@ -30,7 +30,7 @@ camera_pitch = p.addUserDebugParameter("Nachylenie (pitch)", -89, 89, -8)
 camera_height_offset = p.addUserDebugParameter("Wysokość kamery", -2, 2, 0.0)
 
 # Poczekaj na stabilizację
-for _ in range(100):
+for _ in range(1000):
     p.stepSimulation()
     time.sleep(1./240.)
 
@@ -68,9 +68,9 @@ for i in range(num_joints):
     joint_reaction_forces = joint_state[2]
     joint_motor_torque = joint_state[3]
     
-    print(f"\n--- LINK {i}: {joint_name} ---")
+    print(f"\n--- LINK: {i}, name: {joint_name} ---")
     print(f"  Typ jointa: {joint_type} ({get_joint_type_name(joint_type)})")
-    print(f"  Indeks: {joint_index}")
+    print(f"  Joint Indeks: {joint_index}")
     print(f"  Pozycja lokalna: [{link_pos[0]:.3f}, {link_pos[1]:.3f}, {link_pos[2]:.3f}]")
     print(f"  Pozycja światowa: [{link_world_pos[0]:.3f}, {link_world_pos[1]:.3f}, {link_world_pos[2]:.3f}]")
     print(f"  Orientacja (Euler): [{euler_deg[0]:.1f}°, {euler_deg[1]:.1f}°, {euler_deg[2]:.1f}°]")

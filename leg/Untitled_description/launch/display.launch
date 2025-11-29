@@ -1,7 +1,7 @@
 <launch>
-  <arg name="model" default="$(find Walker_description)/urdf/Walker.xacro"/>
+  <arg name="model" default="$(find Untitled_description)/urdf/Untitled.xacro"/>
   <arg name="gui" default="true"/>
-  <arg name="rvizconfig" default="$(find Walker_description)/launch/urdf.rviz"/>
+  <arg name="rvizconfig" default="$(find Untitled_description)/launch/urdf.rviz"/>
   <param name="robot_description" command="$(find xacro)/xacro $(arg model)"/>
   <param name="use_gui" value="$(arg gui)"/>
   <node name="joint_state_publisher_gui" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui"/>
