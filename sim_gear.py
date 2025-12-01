@@ -15,24 +15,43 @@ p.loadURDF("plane.urdf")
 robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.27], useFixedBase=True)
 
 # ========================================
+# UTWÓRZ GEAR CONSTRAINT
+# ========================================
+gear_constraint = p.createConstraint(
+    parentBodyUniqueId=robot,
+    parentLinkIndex=0,
+    childBodyUniqueId=robot,
+    childLinkIndex=1,
+    jointType=p.JOINT_GEAR,
+    jointAxis=[0, 0, 0],
+    parentFramePosition=[0, 0, 0],
+    childFramePosition=[0, 0, 0],
+)
+
+# Ustaw przełożenie i siłę
+p.changeConstraint(gear_constraint, gearRatio=1, maxForce=100000, erp=1.0)
+
+# ========================================
 # SLIDERY DO KONTROLI KAMERY
 # ========================================
 camera_distance_slider = p.addUserDebugParameter("Odległość kamery", 0.1, 3.0, 0.5)
-camera_yaw_slider = p.addUserDebugParameter("Obrót kamery (Yaw)", -180, 180, -0)
+camera_yaw_slider = p.addUserDebugParameter("Obrót kamery (Yaw)", -180, 180, 0)
 camera_pitch_slider = p.addUserDebugParameter("Nachylenie kamery (Pitch)", -89, 89, 0)
 camera_height_slider = p.addUserDebugParameter("Wysokość kamery", -1.0, 1.0, 0.0)
 
 # ========================================
 # PARAMETRY DOCELOWE IK
 # ========================================
-target_x = 0
+target_x = 0.14806
 target_y = 0
-target_z = 0.1
+target_z = 0.27 - 0.1638919
 
-ee_index=5
+ee_index = 5
+
 # ========================================
 # GŁÓWNA PĘTLA SYMULACJI
 # ========================================
+frame_count = 0
 while True:
     # ------------------------------------
     # OBLICZ INVERSE KINEMATICS
@@ -49,39 +68,48 @@ while True:
         residualThreshold=1e-5
     )
     
-    # ------------------------------------
-    # WYŚWIETL OBLICZONE KĄTY
-    # ------------------------------------
-    print("=" * 50)
-    print("OBLICZONE KĄTY Z IK:")
-    for i, angle in enumerate(joint_positions):
-        print(f"  Przegub {i}: {angle:7.4f} rad ({np.degrees(angle):7.2f}°)")
+    # Steruj Joint 0 - Joint 1 zostanie zsynchronizowany przez gear constraint
+    p.setJointMotorControl2(
+        bodyUniqueId=robot,
+        jointIndex=0,
+        controlMode=p.POSITION_CONTROL,
+        targetPosition=joint_positions[0],
+        force=500,
+        maxVelocity=10
+    )
+    
+    # Wyłącz kontroler dla Joint 1, aby gear constraint mógł działać
+    p.setJointMotorControl2(
+        bodyUniqueId=robot,
+        jointIndex=1,
+        controlMode=p.VELOCITY_CONTROL,
+        targetVelocity=0,
+        force=0  # Zero force = brak aktywnego kontrolera
+    )
+    
+    # Steruj pozostałymi jointami
+    for i in range(2, len(joint_positions)):
+        p.setJointMotorControl2(
+            bodyUniqueId=robot,
+            jointIndex=i,
+            controlMode=p.POSITION_CONTROL,
+            targetPosition=joint_positions[i],
+            force=500,
+            maxVelocity=10
+        )
     
     # ------------------------------------
-    # USTAW PRZEGUBY NATYCHMIAST
+    # WYŚWIETL CO 60 KLATEK
     # ------------------------------------
-    for i in range(len(joint_positions)):
-        p.resetJointState(robot, i, joint_positions[i])
-    
-    # ------------------------------------
-    # WYŚWIETL POZYCJĘ END EFFEKTORA
-    # ------------------------------------
-    end_effector_state = p.getLinkState(robot, 4)
-    end_effector_pos = end_effector_state[0]  # Pozycja world
-    end_effector_orn = end_effector_state[1]  # Orientacja (quaternion)
-    end_effector_euler = p.getEulerFromQuaternion(end_effector_orn)
-    
-    print("\nPOZYCJA END EFFEKTORA:")
-    print(f"  Pozycja:    [{end_effector_pos[0]:7.4f}, {end_effector_pos[1]:7.4f}, {end_effector_pos[2]:7.4f}]")
-    print(f"  Orientacja: [{np.degrees(end_effector_euler[0]):7.2f}°, {np.degrees(end_effector_euler[1]):7.2f}°, {np.degrees(end_effector_euler[2]):7.2f}°]")
-    
-    print("\nPOZYCJA DOCELOWA:")
-    print(f"  Target:     [{target_position[0]:7.4f}, {target_position[1]:7.4f}, {target_position[2]:7.4f}]")
-    
-    # Oblicz błąd pozycji
-    error = np.linalg.norm(np.array(end_effector_pos) - np.array(target_position))
-    print(f"  Błąd:       {error:7.4f} m")
-    
+    if frame_count % 60 == 0:
+        print("=" * 50)
+        print("AKTUALNE KĄTY PRZEGUBÓW:")
+        num_joints = p.getNumJoints(robot)
+        for i in range(min(4, num_joints)):
+            joint_state = p.getJointState(robot, i)
+            actual_angle = joint_state[0]
+            print(f"  Przegub {i}: {actual_angle:7.4f} rad ({np.degrees(actual_angle):7.2f}°)")
+        
     # ------------------------------------
     # AKTUALIZUJ KAMERĘ
     # ------------------------------------
@@ -105,3 +133,4 @@ while True:
     # ------------------------------------
     p.stepSimulation()
     time.sleep(1./240.)
+    frame_count += 1

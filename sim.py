@@ -8,7 +8,7 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, -9.81)
 p.loadURDF("plane.urdf")
 
-robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.24], useFixedBase=True)
+robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.271], useFixedBase=True)
 
 sliders = []
 for i in range(p.getNumJoints(robot)):
@@ -17,7 +17,7 @@ for i in range(p.getNumJoints(robot)):
     slider = p.addUserDebugParameter(name, -3.14, 3.14, 0)
     sliders.append(slider)
 
-camera_distance = p.addUserDebugParameter("Odległość", 0.5, 10, 0.25)
+camera_distance = p.addUserDebugParameter("Odległość", 0.5, 10, 0.0)
 camera_yaw = p.addUserDebugParameter("Obrót (yaw)", -180, 180, 15)
 camera_pitch = p.addUserDebugParameter("Nachylenie (pitch)", -89, 89, -10)
 camera_height_offset = p.addUserDebugParameter("Wysokość kamery", -2, 2, 0.0)

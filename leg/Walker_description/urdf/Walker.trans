@@ -1,45 +1,56 @@
 <?xml version="1.0" ?>
 <robot name="Walker" xmlns:xacro="http://www.ros.org/wiki/xacro" >
 
-<transmission name="Revolute 107_tran">
+<transmission name="hip_tran">
   <type>transmission_interface/SimpleTransmission</type>
-  <joint name="Revolute 107">
+  <joint name="hip">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
   </joint>
-  <actuator name="Revolute 107_actr">
+  <actuator name="hip_actr">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     <mechanicalReduction>1</mechanicalReduction>
   </actuator>
 </transmission>
 
-<transmission name="Revolute 108_tran">
+<transmission name="knee_1_tran">
   <type>transmission_interface/SimpleTransmission</type>
-  <joint name="Revolute 108">
+  <joint name="knee_1">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
   </joint>
-  <actuator name="Revolute 108_actr">
+  <actuator name="knee_1_actr">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     <mechanicalReduction>1</mechanicalReduction>
   </actuator>
 </transmission>
 
-<transmission name="Revolute 109_tran">
+<transmission name="knee_2_tran">
   <type>transmission_interface/SimpleTransmission</type>
-  <joint name="Revolute 109">
+  <joint name="knee_2">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
   </joint>
-  <actuator name="Revolute 109_actr">
+  <actuator name="knee_2_actr">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     <mechanicalReduction>1</mechanicalReduction>
   </actuator>
 </transmission>
 
-<transmission name="Revolute 110_tran">
+<transmission name="ankle_tran">
   <type>transmission_interface/SimpleTransmission</type>
-  <joint name="Revolute 110">
+  <joint name="ankle">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
   </joint>
-  <actuator name="Revolute 110_actr">
+  <actuator name="ankle_actr">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<transmission name="Revolute 112_tran">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="Revolute 112">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="Revolute 112_actr">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     <mechanicalReduction>1</mechanicalReduction>
   </actuator>

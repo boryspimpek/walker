@@ -9,9 +9,9 @@ p.setGravity(0, 0, -9.81)
 p.loadURDF("plane.urdf")
 
 robot = p.loadURDF("Walker.urdf", 
-                   basePosition=[0, 0, 0.24], useFixedBase=True)
+                   basePosition=[0, 0, 0.271], useFixedBase=True)
 
-end_effector_index = 3
+end_effector_index = 5
 
 target_x = p.addUserDebugParameter("Pozycja X", -0.5, 0.5, 0.0)
 target_y = p.addUserDebugParameter("Pozycja Y", -0.5, 0.5, 0.0)
@@ -32,7 +32,7 @@ while True:
     
     joint_positions = p.calculateInverseKinematics(
         robot,
-        3,
+        end_effector_index,
         target_position,
         target_orientation,
         maxNumIterations=100,

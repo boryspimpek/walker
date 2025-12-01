@@ -13,14 +13,14 @@
   <visual>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -34,14 +34,14 @@
   <visual>
     <origin xyz="-0.0 -0.015 0.03" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/thigh_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/thigh_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.0 -0.015 0.03" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/thigh_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/thigh_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -55,14 +55,14 @@
   <visual>
     <origin xyz="-0.0 -0.015 0.11" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/knee_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/knee_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.0 -0.015 0.11" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/knee_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/knee_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -76,14 +76,14 @@
   <visual>
     <origin xyz="-0.0 -0.015 0.13" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/shin_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/shin_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.0 -0.015 0.13" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/shin_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/shin_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -97,14 +97,14 @@
   <visual>
     <origin xyz="-0.0 -0.015 0.21" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/ankle_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/ankle_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.0 -0.015 0.21" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/ankle_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/ankle_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -118,14 +118,14 @@
   <visual>
     <origin xyz="-0.015 0.0 0.23" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/ankle_roll_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/ankle_roll_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.015 0.0 0.23" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/ankle_roll_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/ankle_roll_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -139,14 +139,14 @@
   <visual>
     <origin xyz="-0.0 0.0 0.26" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/foot_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/foot_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
     <material name="silver"/>
   </visual>
   <collision>
     <origin xyz="-0.0 0.0 0.26" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/foot_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="package://Walker_description/meshes/foot_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
@@ -156,7 +156,6 @@
   <parent link="base_link"/>
   <child link="thigh_1"/>
   <axis xyz="0.0 1.0 0.0"/>
-  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
 <joint name="knee_1" type="continuous">
@@ -164,7 +163,6 @@
   <parent link="thigh_1"/>
   <child link="knee_1"/>
   <axis xyz="-0.0 1.0 -0.0"/>
-  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
 <joint name="knee_2" type="continuous">
@@ -172,7 +170,6 @@
   <parent link="knee_1"/>
   <child link="shin_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
-  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
 <joint name="ankle" type="continuous">
@@ -180,7 +177,6 @@
   <parent link="shin_1"/>
   <child link="ankle_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
-  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
 <joint name="Revolute 112" type="continuous">
@@ -188,7 +184,6 @@
   <parent link="ankle_1"/>
   <child link="ankle_roll_1"/>
   <axis xyz="1.0 -0.0 0.0"/>
-  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
 <joint name="Rigid 113" type="fixed">
