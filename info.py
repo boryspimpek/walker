@@ -8,7 +8,7 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, -9.81)
 p.loadURDF("plane.urdf")
 
-robot = p.loadURDF("Walker.urdf", [0, 0, 0.271], useFixedBase=True)
+robot = p.loadURDF("Walker.urdf", [0, 0, 0.291], useFixedBase=True)
 num_joints = p.getNumJoints(robot)
 for i in range(num_joints):
     p.resetJointState(robot, i, targetValue=0.0, targetVelocity=0.0)
@@ -79,6 +79,9 @@ for i in range(num_joints):
 
 print("\n" + "="*80)
 
+for i in range(p.getNumJoints(robot)):
+    info = p.getJointInfo(robot, i)
+    print(i, info[1].decode("utf-8"), " -> parent link:", info[16])
 
 while True:
     robot_pos, _ = p.getBasePositionAndOrientation(robot)

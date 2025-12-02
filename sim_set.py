@@ -12,7 +12,7 @@ p.setGravity(0, 0, -9.81)
 
 # Załaduj scenę
 p.loadURDF("plane.urdf")
-robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.27], useFixedBase=True)
+robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.29], useFixedBase=True)
 
 # ========================================
 # SLIDERY DO KONTROLI KAMERY
@@ -25,11 +25,11 @@ camera_height_slider = p.addUserDebugParameter("Wysokość kamery", -1.0, 1.0, 0
 # ========================================
 # PARAMETRY DOCELOWE IK
 # ========================================
-target_x = 0
-target_y = 0
+target_x = 0.08
+target_y = 0.08
 target_z = 0.1
 
-ee_index=5
+ee_index = 6
 # ========================================
 # GŁÓWNA PĘTLA SYMULACJI
 # ========================================

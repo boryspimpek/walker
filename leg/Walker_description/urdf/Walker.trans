@@ -1,56 +1,67 @@
 <?xml version="1.0" ?>
 <robot name="Walker" xmlns:xacro="http://www.ros.org/wiki/xacro" >
 
-<transmission name="hip_tran">
+<transmission name="hip_roll_tran">
   <type>transmission_interface/SimpleTransmission</type>
-  <joint name="hip">
+  <joint name="hip_roll">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
   </joint>
-  <actuator name="hip_actr">
+  <actuator name="hip_roll_actr">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     <mechanicalReduction>1</mechanicalReduction>
   </actuator>
 </transmission>
 
-<transmission name="knee_1_tran">
+<transmission name="hip_pitch_tran">
   <type>transmission_interface/SimpleTransmission</type>
-  <joint name="knee_1">
+  <joint name="hip_pitch">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
   </joint>
-  <actuator name="knee_1_actr">
+  <actuator name="hip_pitch_actr">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     <mechanicalReduction>1</mechanicalReduction>
   </actuator>
 </transmission>
 
-<transmission name="knee_2_tran">
+<transmission name="knee_pitch1_tran">
   <type>transmission_interface/SimpleTransmission</type>
-  <joint name="knee_2">
+  <joint name="knee_pitch1">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
   </joint>
-  <actuator name="knee_2_actr">
+  <actuator name="knee_pitch1_actr">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     <mechanicalReduction>1</mechanicalReduction>
   </actuator>
 </transmission>
 
-<transmission name="ankle_tran">
+<transmission name="knee_pitch2_tran">
   <type>transmission_interface/SimpleTransmission</type>
-  <joint name="ankle">
+  <joint name="knee_pitch2">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
   </joint>
-  <actuator name="ankle_actr">
+  <actuator name="knee_pitch2_actr">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     <mechanicalReduction>1</mechanicalReduction>
   </actuator>
 </transmission>
 
-<transmission name="Revolute 112_tran">
+<transmission name="ankle_pitch_tran">
   <type>transmission_interface/SimpleTransmission</type>
-  <joint name="Revolute 112">
+  <joint name="ankle_pitch">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
   </joint>
-  <actuator name="Revolute 112_actr">
+  <actuator name="ankle_pitch_actr">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+</transmission>
+
+<transmission name="ankle_roll_tran">
+  <type>transmission_interface/SimpleTransmission</type>
+  <joint name="ankle_roll">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+  <actuator name="ankle_roll_actr">
     <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     <mechanicalReduction>1</mechanicalReduction>
   </actuator>

@@ -9,9 +9,9 @@ p.setGravity(0, 0, -9.81)
 p.loadURDF("plane.urdf")
 
 robot = p.loadURDF("Walker.urdf", 
-                   basePosition=[0, 0, 0.271], useFixedBase=True)
+                   basePosition=[0, 0, 0.291], useFixedBase=True)
 
-end_effector_index = 5
+end_effector_index = 6
 
 target_x = p.addUserDebugParameter("Pozycja X", -0.5, 0.5, 0.0)
 target_y = p.addUserDebugParameter("Pozycja Y", -0.5, 0.5, 0.0)
