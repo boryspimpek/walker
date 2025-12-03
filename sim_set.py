@@ -12,7 +12,7 @@ p.setGravity(0, 0, -9.81)
 
 # Załaduj scenę
 p.loadURDF("plane.urdf")
-robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.29], useFixedBase=True)
+robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.325], useFixedBase=True)
 
 # ========================================
 # SLIDERY DO KONTROLI KAMERY
@@ -29,7 +29,7 @@ target_x = 0.08
 target_y = 0.08
 target_z = 0.1
 
-ee_index = 6
+ee_index = 9
 # ========================================
 # GŁÓWNA PĘTLA SYMULACJI
 # ========================================

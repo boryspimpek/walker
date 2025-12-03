@@ -14,14 +14,19 @@ p.setGravity(0, 0, -9.81)
 p.loadURDF("plane.urdf")
 robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.291], useFixedBase=True)
 
+# Linki powiązane z constraintem gear
+JOINT_GEAR_PARENT = 1
+JOINT_GEAR_CHILD = 2
+
+
 # ========================================
 # CONSTRAINT GEAR - POŁĄCZENIE PRZEGUBÓW
 # ========================================
 gear_constraint = p.createConstraint(
     parentBodyUniqueId=robot,
-    parentLinkIndex=1,          # Joint 1 (parent)
+    parentLinkIndex=JOINT_GEAR_PARENT,          # (parent)
     childBodyUniqueId=robot,
-    childLinkIndex=2,           # Joint 2 (child)
+    childLinkIndex=JOINT_GEAR_CHILD,            # (child)
     jointType=p.JOINT_GEAR,
     jointAxis=[0, 0, 0],
     parentFramePosition=[0, 0, 0],
@@ -78,8 +83,8 @@ while True:
     num_joints = p.getNumJoints(robot)
     
     for i in range(min(len(joint_positions), num_joints)):
-        if i == 2:
-            # Joint 2: WYŁĄCZ aktywny kontroler, aby gear mógł działać
+        if i == JOINT_GEAR_CHILD:
+            # Joint child: WYŁĄCZ aktywny kontroler, aby gear mógł działać
             p.setJointMotorControl2(
                 bodyUniqueId=robot,
                 jointIndex=i,

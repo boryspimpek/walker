@@ -16,6 +16,10 @@ X_OFFSET = 0.0
 GAIT_SPEED = 0.4  # cykle/s
 END_EFFECTOR_INDEX = 6
 
+# Linki powiązane z constraintem gear
+JOINT_GEAR_PARENT = 1
+JOINT_GEAR_CHILD = 2
+
 
 def init_simulation():
     p.connect(p.GUI)
@@ -51,9 +55,9 @@ def trot_gait(phase: float):
 def setup_gear_constraint(robot):
     cid = p.createConstraint(
         parentBodyUniqueId=robot,
-        parentLinkIndex=1,
+        parentLinkIndex=JOINT_GEAR_PARENT,
         childBodyUniqueId=robot,
-        childLinkIndex=2,
+        childLinkIndex=JOINT_GEAR_CHILD,
         jointType=p.JOINT_GEAR,
         jointAxis=[0, 0, 0],
         parentFramePosition=[0, 0, 0],
@@ -89,7 +93,7 @@ def update_camera(robot, ui):
 
 def apply_joint_control(robot, target_positions):
     for i in range(min(len(target_positions), p.getNumJoints(robot))):
-        if i == 2:
+        if i == JOINT_GEAR_CHILD:
             p.setJointMotorControl2(robot, i, p.VELOCITY_CONTROL,
                                     force=0, targetVelocity=0)
         else:
@@ -106,6 +110,7 @@ def debug_info(robot):
     for i in range(min(20, p.getNumJoints(robot))):
         angle = p.getJointState(robot, i)[0]
         print(f"Joint {i}: {np.degrees(angle):7.2f}°")
+
 
 # ========================================
 # GŁÓWNA PĘTLA
