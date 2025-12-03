@@ -1,229 +1,240 @@
 <?xml version="1.0" ?>
-<robot name="Walker" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="Walker">
 
-<xacro:include filename="$(find Walker_description)/urdf/materials.xacro" />
-<xacro:include filename="$(find Walker_description)/urdf/Walker.trans" />
-<xacro:include filename="$(find Walker_description)/urdf/Walker.gazebo" />
 <link name="base_link">
   <inertial>
-    <origin xyz="0.0 0.0 -0.019940746103482097" rpy="0 0 0"/>
-    <mass value="0.28093534859267927"/>
-    <inertia ixx="5.9e-05" iyy="5.9e-05" izz="4.2e-05" ixy="0.0" iyz="0.0" ixz="0.0"/>
+    <origin xyz="-1.5323256952977413e-17 1.225860556238193e-17 -0.02479496754972491" rpy="0 0 0"/>
+    <mass value="0.3640061961261434"/>
+    <inertia ixx="9.6e-05" iyy="0.000108" izz="5.8e-05" ixy="-0.0" iyz="0.0" ixz="-0.0"/>
   </inertial>
   <visual>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="green">
+      <color rgba="0 1 0 1"/>
+    </material>  
   </visual>
   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
 
-<link name="hip_roll_1">
+<link name="hip_1">
   <inertial>
-    <origin xyz="-0.015000000000000097 8.898885287580091e-16 -0.009999999999998191" rpy="0 0 0"/>
-    <mass value="0.2792706971853587"/>
-    <inertia ixx="5.8e-05" iyy="5.8e-05" izz="4.2e-05" ixy="0.0" iyz="-0.0" ixz="0.0"/>
+    <origin xyz="-0.018649999999999313 -2.265347954282362e-16 -0.02000000000002449" rpy="0 0 0"/>
+    <mass value="0.1612694354483246"/>
+    <inertia ixx="7.7e-05" iyy="7.7e-05" izz="9.4e-05" ixy="0.0" iyz="0.0" ixz="0.0"/>
   </inertial>
   <visual>
-    <origin xyz="-0.015 -0.0 0.03" rpy="0 0 0"/>
+    <origin xyz="-0.01865 0.0 0.037" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/hip_roll_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/hip_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="red">
+      <color rgba="1 0 0 1"/>
+    </material>  
   </visual>
   <collision>
-    <origin xyz="-0.015 -0.0 0.03" rpy="0 0 0"/>
+    <origin xyz="-0.01865 0.0 0.037" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/hip_roll_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/hip_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
 
 <link name="thigh_1">
   <inertial>
-    <origin xyz="-3.675018476364042e-16 -0.015000000000000213 -0.040000000000000216" rpy="0 0 0"/>
-    <mass value="0.7031706971853584"/>
-    <inertia ixx="0.000636" iyy="0.000636" izz="0.000106" ixy="-0.0" iyz="-0.0" ixz="0.0"/>
+    <origin xyz="1.651796839309404e-15 -0.018650000000000624 -0.03286069713276171" rpy="0 0 0"/>
+    <mass value="0.6635304485624715"/>
+    <inertia ixx="0.000524" iyy="0.000504" izz="0.000104" ixy="-0.0" iyz="-0.0" ixz="0.0"/>
   </inertial>
   <visual>
-    <origin xyz="0.0 -0.015 0.05" rpy="0 0 0"/>
+    <origin xyz="0.0 -0.01865 0.077" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/thigh_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/thigh_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="yellow">
+      <color rgba="1 1 0 1"/>
+    </material>  
   </visual>
   <collision>
-    <origin xyz="0.0 -0.015 0.05" rpy="0 0 0"/>
+    <origin xyz="0.0 -0.01865 0.077" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/thigh_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/thigh_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
 
 <link name="knee_1">
   <inertial>
-    <origin xyz="-1.7593300251577167e-15 -0.01499999999999996 -0.009999999999999898" rpy="0 0 0"/>
-    <mass value="0.27927069718535813"/>
-    <inertia ixx="5.8e-05" iyy="5.9e-05" izz="4.2e-05" ixy="0.0" iyz="-0.0" ixz="-0.0"/>
+    <origin xyz="0.02026723908891277 -0.016500000000000885 -0.015500000953674875" rpy="0 0 0"/>
+    <mass value="0.3524642857407411"/>
+    <inertia ixx="0.000199" iyy="0.000144" izz="0.000116" ixy="0.0" iyz="-0.0" ixz="-0.0"/>
   </inertial>
   <visual>
-    <origin xyz="-0.0 -0.015 0.13" rpy="0 0 0"/>
+    <origin xyz="0.0 -0.0165 0.144" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/knee_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/knee_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="green">
+      <color rgba="0 1 0 1"/>
+    </material>  
   </visual>
   <collision>
-    <origin xyz="-0.0 -0.015 0.13" rpy="0 0 0"/>
+    <origin xyz="0.0 -0.0165 0.144" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/knee_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/knee_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
 
 <link name="shin_1">
   <inertial>
-    <origin xyz="5.248353906337566e-09 -0.014999999999999809 -0.03999998244649275" rpy="0 0 0"/>
-    <mass value="0.7031704499676481"/>
-    <inertia ixx="0.000636" iyy="0.000636" izz="0.000106" ixy="0.0" iyz="-0.0" ixz="0.0"/>
+    <origin xyz="-2.8776119280261764e-15 -0.016500000000000934 -0.034139304774587736" rpy="0 0 0"/>
+    <mass value="0.663530448562467"/>
+    <inertia ixx="0.000524" iyy="0.000504" izz="0.000104" ixy="0.0" iyz="0.0" ixz="0.0"/>
   </inertial>
   <visual>
-    <origin xyz="-0.0 -0.015 0.15" rpy="0 0 0"/>
+    <origin xyz="0.0 -0.0165 0.175" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/shin_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/shin_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="yellow">
+      <color rgba="1 1 0 1"/>
+    </material>  
   </visual>
   <collision>
-    <origin xyz="-0.0 -0.015 0.15" rpy="0 0 0"/>
+    <origin xyz="0.0 -0.0165 0.175" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/shin_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/shin_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
 
 <link name="ankle_1">
   <inertial>
-    <origin xyz="-7.240003152659723e-16 -0.015000000000000237 -0.009999999999997067" rpy="0 0 0"/>
-    <mass value="0.27927069718535824"/>
-    <inertia ixx="5.8e-05" iyy="5.8e-05" izz="4.2e-05" ixy="-0.0" iyz="-0.0" ixz="0.0"/>
+    <origin xyz="-5.429777469623923e-15 -0.018650000000001252 -0.02000000190732476" rpy="0 0 0"/>
+    <mass value="0.16126943544832473"/>
+    <inertia ixx="7.7e-05" iyy="7.7e-05" izz="9.4e-05" ixy="0.0" iyz="0.0" ixz="0.0"/>
   </inertial>
   <visual>
-    <origin xyz="-0.0 -0.015 0.23" rpy="0 0 0"/>
+    <origin xyz="0.0 -0.01865 0.242" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/ankle_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/ankle_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="red">
+      <color rgba="1 0 0 1"/>
+    </material>  
   </visual>
   <collision>
-    <origin xyz="-0.0 -0.015 0.23" rpy="0 0 0"/>
+    <origin xyz="0.0 -0.01865 0.242" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/ankle_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-  </collision>
-</link>
-
-<link name="ankle_roll_1">
-  <inertial>
-    <origin xyz="-0.014999999999999404 6.39785483460577e-16 -0.009999999999997178" rpy="0 0 0"/>
-    <mass value="0.2792706971853587"/>
-    <inertia ixx="5.8e-05" iyy="5.8e-05" izz="4.2e-05" ixy="0.0" iyz="-0.0" ixz="-0.0"/>
-  </inertial>
-  <visual>
-    <origin xyz="-0.015 0.0 0.25" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/ankle_roll_1.stl" scale="0.001 0.001 0.001"/>
-    </geometry>
-    <material name="silver"/>
-  </visual>
-  <collision>
-    <origin xyz="-0.015 0.0 0.25" rpy="0 0 0"/>
-    <geometry>
-      <mesh filename="leg/Walker_description/meshes/ankle_roll_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/ankle_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
 
 <link name="foot_1">
   <inertial>
-    <origin xyz="6.245004505575571e-16 -2.76128590171539e-16 -0.004999999999999394" rpy="0 0 0"/>
-    <mass value="0.5024"/>
-    <inertia ixx="0.000272" iyy="0.000272" izz="0.000536" ixy="0.0" iyz="-0.0" ixz="-0.0"/>
+    <origin xyz="-0.018650000000009378 0.012206893260933448 2.056319544363472e-06" rpy="0 0 0"/>
+    <mass value="0.3639507075296119"/>
+    <inertia ixx="9.6e-05" iyy="5.8e-05" izz="0.000107" ixy="0.0" iyz="0.0" ixz="0.0"/>
   </inertial>
   <visual>
-    <origin xyz="-0.0 0.0 0.28" rpy="0 0 0"/>
+    <origin xyz="-0.01865 0.0 0.282" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/foot_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/foot_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="green">
+      <color rgba="0 1 0 1"/>
+    </material>  
   </visual>
   <collision>
-    <origin xyz="-0.0 0.0 0.28" rpy="0 0 0"/>
+    <origin xyz="-0.01865 0.0 0.282" rpy="0 0 0"/>
     <geometry>
-      <mesh filename="leg/Walker_description/meshes/foot_1.stl" scale="0.001 0.001 0.001"/>
+      <mesh filename="walker/Walker_description/meshes/foot_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
   </collision>
 </link>
 
-<joint name="hip_roll" type="continuous">
-  <origin xyz="0.015 0.0 -0.03" rpy="0 0 0"/>
+<link name="end_1">
+  <inertial>
+    <origin xyz="-2.3868654062011195e-10 0.011187985363426634 -0.0025000018924326572" rpy="0 0 0"/>
+    <mass value="0.23876488296307571"/>
+    <inertia ixx="0.000103" iyy="0.000144" izz="0.000246" ixy="-0.0" iyz="0.0" ixz="0.0"/>
+  </inertial>
+  <visual>
+    <origin xyz="0.0 0.0 0.296" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="walker/Walker_description/meshes/end_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+    <material name="yellow">
+      <color rgba="1 1 0 1"/>
+    </material>  
+  </visual>
+  <collision>
+    <origin xyz="0.0 0.0 0.296" rpy="0 0 0"/>
+    <geometry>
+      <mesh filename="walker/Walker_description/meshes/end_1.stl" scale="0.001 0.001 0.001"/>
+    </geometry>
+  </collision>
+</link>
+
+<joint name="Revolute 31" type="continuous">
+  <origin xyz="0.01865 0.0 -0.037" rpy="0 0 0"/>
   <parent link="base_link"/>
-  <child link="hip_roll_1"/>
-  <axis xyz="1.0 0.0 0.0"/>
-  <!-- <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/> -->
+  <child link="hip_1"/>
+  <axis xyz="1.0 -0.0 0.0"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="hip_pitch" type="continuous">
-  <origin xyz="-0.015 0.015 -0.02" rpy="0 0 0"/>
-  <parent link="hip_roll_1"/>
+<joint name="Revolute 32" type="continuous">
+  <origin xyz="-0.01865 0.01865 -0.04" rpy="0 0 0"/>
+  <parent link="hip_1"/>
   <child link="thigh_1"/>
-  <axis xyz="-0.0 -1.0 0.0"/>
-  <!-- <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/> -->
+  <axis xyz="-0.0 1.0 -0.0"/>
+  <limit lower="-1.57" upper="0.78" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="knee_pitch1" type="continuous">
-  <origin xyz="0.0 0.0 -0.08" rpy="0 0 0"/>
+<joint name="Revolute 33" type="continuous">
+  <origin xyz="0.0 -0.00215 -0.067" rpy="0 0 0"/>
   <parent link="thigh_1"/>
   <child link="knee_1"/>
-  <axis xyz="-0.0 1.0 -0.0"/>
-  <!-- <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/> -->
+  <axis xyz="-0.0 -1.0 0.0"/>
+  <limit lower="-3.14" upper="3.14" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="knee_pitch2" type="continuous">
-  <origin xyz="0.0 0.0 -0.02" rpy="0 0 0"/>
+<joint name="Revolute 34" type="continuous">
+  <origin xyz="0.0 0.0 -0.031" rpy="0 0 0"/>
   <parent link="knee_1"/>
   <child link="shin_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
-  <!-- <limit lower="0" upper="1.57" effort="100" velocity="1.0"/> -->
+  <limit lower="0" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="ankle_pitch" type="continuous">
-  <origin xyz="0.0 0.0 -0.08" rpy="0 0 0"/>
+<joint name="Revolute 35" type="continuous">
+  <origin xyz="0.0 0.00215 -0.067" rpy="0 0 0"/>
   <parent link="shin_1"/>
   <child link="ankle_1"/>
-  <axis xyz="0.0 1.0 -0.0"/>
-  <!-- <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/> -->
+  <axis xyz="-0.0 1.0 0.0"/>
 </joint>
 
-<joint name="ankle_roll" type="continuous">
-  <origin xyz="0.015 -0.015 -0.02" rpy="0 0 0"/>
+<joint name="Revolute 36" type="continuous">
+  <origin xyz="0.01865 -0.01865 -0.04" rpy="0 0 0"/>
   <parent link="ankle_1"/>
-  <child link="ankle_roll_1"/>
+  <child link="foot_1"/>
   <axis xyz="1.0 -0.0 0.0"/>
-  <!-- <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/> -->
 </joint>
 
-<joint name="Rigid 120" type="fixed">
-  <origin xyz="-0.015 0.0 -0.03" rpy="0 0 0"/>
-  <parent link="ankle_roll_1"/>
-  <child link="foot_1"/>
+<joint name="Rigid 37" type="fixed">
+  <origin xyz="-0.01865 0.0 -0.014" rpy="0 0 0"/>
+  <parent link="foot_1"/>
+  <child link="end_1"/>
 </joint>
 
 </robot>

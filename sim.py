@@ -8,7 +8,7 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, -9.81)
 p.loadURDF("plane.urdf")
 
-robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.325], useFixedBase=True)
+robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.325], useFixedBase=True)
 
 sliders = []
 for i in range(p.getNumJoints(robot)):

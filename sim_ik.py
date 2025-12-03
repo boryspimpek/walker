@@ -8,19 +8,19 @@ p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, -9.81)
 p.loadURDF("plane.urdf")
 
-robot = p.loadURDF("Walker2.urdf", 
+robot = p.loadURDF("Walker.urdf", 
                    basePosition=[0, 0, 0.325], useFixedBase=True)
 
-end_effector_index = 2
+end_effector_index = 6
 
 target_x = p.addUserDebugParameter("Pozycja X", -0.5, 0.5, 0.0)
 target_y = p.addUserDebugParameter("Pozycja Y", -0.5, 0.5, 0.0)
 target_z = p.addUserDebugParameter("Pozycja Z", 0.0, 0.5, 0.0)
 
-camera_distance = p.addUserDebugParameter("Odległość", 0.5, 10, 0.5)
-camera_yaw = p.addUserDebugParameter("Obrót (yaw)", -180, 180, 0)
+camera_distance = p.addUserDebugParameter("Odleglosc", 0.5, 10, 0.5)
+camera_yaw = p.addUserDebugParameter("Obrot (yaw)", -180, 180, 0)
 camera_pitch = p.addUserDebugParameter("Nachylenie (pitch)", -89, 89, -0)
-camera_height_offset = p.addUserDebugParameter("Wysokość kamery", -2, 2, 0.0)
+camera_height_offset = p.addUserDebugParameter("Wysokosc kamery", -2, 2, 0.0)
 
 while True:
     x = p.readUserDebugParameter(target_x)

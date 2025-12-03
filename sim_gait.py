@@ -7,13 +7,13 @@ import time
 # ========================================
 # PARAMETRY CHODU
 # ========================================
-SWING_WIDTH = 0.08
+SWING_WIDTH = 0.04
 SWING_HEIGHT = 0.05
 SWING_TIME = 0.2
 Z_OFFSET = 0.02
 X_OFFSET = 0.0
 
-GAIT_SPEED = 0.4  # cykle/s
+GAIT_SPEED = 0.5  # cykle/s
 END_EFFECTOR_INDEX = 6
 
 # Linki powiązane z constraintem gear
@@ -27,9 +27,24 @@ def init_simulation():
     p.setGravity(0, 0, -9.81)
 
     p.loadURDF("plane.urdf")
-    robot = p.loadURDF("Walker.urdf", [0, 0, 0.25], useFixedBase=True)
+    robot = p.loadURDF("Walker.urdf", [0, 0, 0.290], useFixedBase=True)
 
     return robot
+
+
+def set_initial_pose(robot):
+    initial_angles = [
+        -0.0000,   # Joint 0
+        -0.2942,   # Joint 1
+        -0.2942,   # Joint 2
+         0.6530,   # Joint 3
+        -0.6530,   # Joint 4
+         0.0000,   # Joint 5
+         0.0000    # Joint 6
+    ]
+
+    for i, angle in enumerate(initial_angles):
+        p.resetJointState(robot, i, angle)
 
 
 # ========================================
@@ -42,11 +57,11 @@ def trot_gait(phase: float):
     if phase < SWING_TIME:
         t = phase / SWING_TIME
         angle = math.pi * (1 - t)
-        x = -half_w * math.cos(angle) + X_OFFSET
+        x = half_w * math.cos(angle) + X_OFFSET  
         z = Z_OFFSET + SWING_HEIGHT * math.sin(angle)
     else:
         t = (phase - SWING_TIME) / (1 - SWING_TIME)
-        x = -half_w + SWING_WIDTH * t + X_OFFSET
+        x = half_w - SWING_WIDTH * t + X_OFFSET  
         z = Z_OFFSET
 
     return x, z
@@ -118,31 +133,29 @@ def debug_info(robot):
 def main():
     robot = init_simulation()
     setup_gear_constraint(robot)
+    set_initial_pose(robot)
     camera_ui = init_camera_ui()
 
-    frame = 0
+    # --- Pozwól zobaczyć pozycję startową przed ruchem ---
+    for _ in range(500):  # ~0.5 sekundy spokojnego widoku
+        update_camera(robot, camera_ui)
+        p.stepSimulation()
+        time.sleep(1/240)
+    # -----------------------------------------------------
 
+    frame = 0
     while True:
         frame += 1
         phase = (frame * GAIT_SPEED / 240.0) % 1.0
 
         x, z = trot_gait(phase)
-
-        target_orientation = p.getQuaternionFromEuler([0, 0, 0])  # Neutralna orientacja
         joint_positions = p.calculateInverseKinematics(
-            robot,
-            END_EFFECTOR_INDEX,
-            [x, 0.0, z],
-            targetOrientation=target_orientation,
-            maxNumIterations=100,
-            residualThreshold=1e-4
+            robot, END_EFFECTOR_INDEX, [x, 0.0, z],
+            targetOrientation=p.getQuaternionFromEuler([0, 0, 0]),
+            maxNumIterations=100, residualThreshold=1e-4
         )
 
         apply_joint_control(robot, joint_positions)
-
-        if frame % 60 == 0:
-            debug_info(robot)
-
         update_camera(robot, camera_ui)
 
         p.stepSimulation()

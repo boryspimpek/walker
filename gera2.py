@@ -12,13 +12,13 @@ p.setGravity(0, 0, -9.81)
 
 # Załaduj scenę
 p.loadURDF("plane.urdf")
-robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.291], useFixedBase=True)
+robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.290], useFixedBase=True)
 
 # Linki powiązane z constraintem gear
 JOINT_GEAR_PARENT = 1
 JOINT_GEAR_CHILD = 2
 
-
+END_EFFECTOR = 6
 # ========================================
 # CONSTRAINT GEAR - POŁĄCZENIE PRZEGUBÓW
 # ========================================
@@ -70,7 +70,7 @@ while True:
     
     joint_positions = p.calculateInverseKinematics(
         robot,
-        endEffectorLinkIndex=6,
+        endEffectorLinkIndex=END_EFFECTOR,
         targetPosition=target_position,
         targetOrientation=target_orientation,
         maxNumIterations=100,
@@ -115,15 +115,7 @@ while True:
             joint_state = p.getJointState(robot, i)
             actual_angle = joint_state[0]
             print(f"  Przegub {i}: {actual_angle:7.4f} rad ({np.degrees(actual_angle):7.2f}°)")
-        
-        # Sprawdź relację gear
-        joint1_angle = p.getJointState(robot, 1)[0]
-        joint2_angle = p.getJointState(robot, 2)[0]
-        print(f"\n  WERYFIKACJA GEAR:")
-        print(f"  Joint 1: {np.degrees(joint1_angle):7.2f}°")
-        print(f"  Joint 2: {np.degrees(joint2_angle):7.2f}° (oczekiwane: {-np.degrees(joint1_angle):7.2f}°)")
-        print(f"  Suma: {np.degrees(joint1_angle + joint2_angle):7.2f}° (powinno być ~0°)")
-    
+            
     # ------------------------------------
     # AKTUALIZUJ KAMERĘ
     # ------------------------------------
