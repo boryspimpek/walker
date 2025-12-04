@@ -1,9 +1,27 @@
 <?xml version="1.0" ?>
-<robot name="Walker" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<robot name="Walker">
 
-<xacro:include filename="$(find Walker_description)/urdf/materials.xacro" />
-<xacro:include filename="$(find Walker_description)/urdf/Walker.trans" />
-<xacro:include filename="$(find Walker_description)/urdf/Walker.gazebo" />
+  <!-- Definicje materiałów -->
+  <material name="red">
+    <color rgba="1.0 0.0 0.0 1.0"/>
+  </material>
+
+  <material name="green">
+    <color rgba="0.0 1.0 0.0 1.0"/>
+  </material>
+
+  <material name="blue">
+    <color rgba="0.0 0.0 1.0 1.0"/>
+  </material>
+ 
+  <material name="yellow">
+    <color rgba="1.0 1.0 0.0 1.0"/>
+  </material>
+  
+  <material name="black">
+    <color rgba="0.0 0.0 0.0 1.0"/>
+  </material>
+
 <link name="base_link">
   <inertial>
     <origin xyz="8.679639435637161e-17 1.4753458231819699e-12 -0.024654703854040158" rpy="0 0 0"/>
@@ -15,7 +33,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/base_link.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="green"/>
   </visual>
   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -36,7 +54,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/left_thigh_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="yellow"/>
   </visual>
   <collision>
     <origin xyz="0.0 -0.05865 0.077" rpy="0 0 0"/>
@@ -57,7 +75,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/left_knee_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="green"/>
   </visual>
   <collision>
     <origin xyz="-0.0 -0.0565 0.144" rpy="0 0 0"/>
@@ -78,7 +96,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/left_shin_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="yellow"/>
   </visual>
   <collision>
     <origin xyz="0.000168 -0.0565 0.175" rpy="0 0 0"/>
@@ -99,7 +117,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/left_ankle_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="red"/>
   </visual>
   <collision>
     <origin xyz="0.00053 -0.05865 0.241999" rpy="0 0 0"/>
@@ -120,7 +138,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/left_foot_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="green"/>
   </visual>
   <collision>
     <origin xyz="-0.017903 -0.04 0.282099" rpy="0 0 0"/>
@@ -141,7 +159,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/left_end_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="yellow"/>
   </visual>
   <collision>
     <origin xyz="0.000823 -0.04 0.295998" rpy="0 0 0"/>
@@ -162,7 +180,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/right_thigh_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="yellow"/>
   </visual>
   <collision>
     <origin xyz="0.0 0.05865 0.077" rpy="0 0 0"/>
@@ -183,7 +201,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/right_knee_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="green"/>
   </visual>
   <collision>
     <origin xyz="0.0 0.0565 0.144" rpy="0 0 0"/>
@@ -204,7 +222,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/right_shin_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="yellow"/>
   </visual>
   <collision>
     <origin xyz="0.0 0.0565 0.175" rpy="0 0 0"/>
@@ -225,7 +243,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/right_ankle_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="red"/>
   </visual>
   <collision>
     <origin xyz="0.0 0.05865 0.242" rpy="0 0 0"/>
@@ -246,7 +264,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/right_foot_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="green"/>
   </visual>
   <collision>
     <origin xyz="-0.01865 0.04 0.282" rpy="0 0 0"/>
@@ -267,7 +285,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/right_end_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="yellow"/>
   </visual>
   <collision>
     <origin xyz="-0.0 0.04 0.296" rpy="0 0 0"/>
@@ -288,7 +306,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/left_hip_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="red"/>
   </visual>
   <collision>
     <origin xyz="-0.01865 -0.04 0.037" rpy="0 0 0"/>
@@ -309,7 +327,7 @@
     <geometry>
       <mesh filename="walker2/Walker_description/meshes/right_hip_1.stl" scale="0.001 0.001 0.001"/>
     </geometry>
-    <material name="silver"/>
+    <material name="red"/>
   </visual>
   <collision>
     <origin xyz="-0.01865 0.04 0.037" rpy="0 0 0"/>
@@ -319,39 +337,44 @@
   </collision>
 </link>
 
-<joint name="Revolute 32" type="continuous">
+<joint name="Revolute 32" type="revolute">
   <origin xyz="-0.01865 0.01865 -0.04" rpy="0 0 0"/>
   <parent link="left_hip_1"/>
   <child link="left_thigh_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="Revolute 33" type="continuous">
+<joint name="Revolute 33" type="revolute">
   <origin xyz="0.0 -0.00215 -0.067" rpy="0 0 0"/>
   <parent link="left_thigh_1"/>
   <child link="left_knee_1"/>
   <axis xyz="-0.0 -1.0 0.0"/>
+  <limit lower="-3.14" upper="3.14" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="Revolute 34" type="continuous">
+<joint name="Revolute 34" type="revolute">
   <origin xyz="-0.000168 0.0 -0.031" rpy="0 0 0"/>
   <parent link="left_knee_1"/>
   <child link="left_shin_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
+  <limit lower="0" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="Revolute 35" type="continuous">
+<joint name="Revolute 35" type="revolute">
   <origin xyz="-0.000362 0.00215 -0.066999" rpy="0 0 0"/>
   <parent link="left_shin_1"/>
   <child link="left_ankle_1"/>
   <axis xyz="-0.0 1.0 0.0"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="Revolute 36" type="continuous">
+<joint name="Revolute 36" type="revolute">
   <origin xyz="0.018433 -0.01865 -0.0401" rpy="0 0 0"/>
   <parent link="left_ankle_1"/>
   <child link="left_foot_1"/>
   <axis xyz="0.999985 -0.0 -0.005412"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
 <joint name="Rigid 37" type="fixed">
@@ -360,39 +383,44 @@
   <child link="left_end_1"/>
 </joint>
 
-<joint name="Revolute 39" type="continuous">
+<joint name="Revolute 39" type="revolute">
   <origin xyz="-0.01865 -0.01865 -0.04" rpy="0 0 0"/>
   <parent link="right_hip_1"/>
   <child link="right_thigh_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="Revolute 40" type="continuous">
+<joint name="Revolute 40" type="revolute">
   <origin xyz="0.0 0.00215 -0.067" rpy="0 0 0"/>
   <parent link="right_thigh_1"/>
   <child link="right_knee_1"/>
   <axis xyz="0.0 1.0 -0.0"/>
+  <limit lower="-3.14" upper="3.14" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="Revolute 41" type="continuous">
+<joint name="Revolute 41" type="revolute">
   <origin xyz="0.0 0.0 -0.031" rpy="0 0 0"/>
   <parent link="right_knee_1"/>
   <child link="right_shin_1"/>
   <axis xyz="-0.0 -1.0 0.0"/>
+  <limit lower="-1.57" upper="0" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="Revolute 42" type="continuous">
+<joint name="Revolute 42" type="revolute">
   <origin xyz="0.0 -0.00215 -0.067" rpy="0 0 0"/>
   <parent link="right_shin_1"/>
   <child link="right_ankle_1"/>
   <axis xyz="0.0 -1.0 0.0"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="Revolute 43" type="continuous">
+<joint name="Revolute 43" type="revolute">
   <origin xyz="0.01865 0.01865 -0.04" rpy="0 0 0"/>
   <parent link="right_ankle_1"/>
   <child link="right_foot_1"/>
   <axis xyz="1.0 -0.0 0.0"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
 <joint name="Rigid 44" type="fixed">
@@ -401,18 +429,20 @@
   <child link="right_end_1"/>
 </joint>
 
-<joint name="Revolute 46" type="continuous">
+<joint name="Revolute 46" type="revolute">
   <origin xyz="0.01865 0.04 -0.037" rpy="0 0 0"/>
   <parent link="base_link"/>
   <child link="left_hip_1"/>
   <axis xyz="1.0 -0.0 0.0"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
-<joint name="Revolute 47" type="continuous">
+<joint name="Revolute 47" type="revolute">
   <origin xyz="0.01865 -0.04 -0.037" rpy="0 0 0"/>
   <parent link="base_link"/>
   <child link="right_hip_1"/>
   <axis xyz="1.0 -0.0 0.0"/>
+  <limit lower="-1.57" upper="1.57" effort="100" velocity="1.0"/>
 </joint>
 
 </robot>

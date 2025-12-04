@@ -2,6 +2,7 @@ import pybullet as p
 import pybullet_data
 import time
 import numpy as np
+import math
 
 # ========================================
 # INICJALIZACJA SYMULACJI
@@ -12,29 +13,33 @@ p.setGravity(0, 0, -9.81)
 
 # Załaduj scenę
 p.loadURDF("plane.urdf")
-robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.302], useFixedBase=True)
+robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.290], useFixedBase=True)
 
 # ========================================
-# SLIDERY DO KONTROLI KAMERY
+# PARAMETRY CHODU
+# ========================================
+SWING_WIDTH = 0.08      # Szerokość kroku
+SWING_HEIGHT = 0.05    # Wysokość uniesienia nogi
+SWING_TIME = 0.5       # Procent czasu w fazie swing (0-1)
+X_OFFSET = 0.0         # Przesunięcie w osi X
+Z_OFFSET = 0.01       # Minimalna wysokość stopy
+
+# Parametry Y (szerokość biodra)
+LEFT_Y = 0.04
+RIGHT_Y = -0.04
+
+# ========================================
+# SLIDERY DO KONTROLI
 # ========================================
 camera_distance_slider = p.addUserDebugParameter("  Odleglosc kamery", 0.1, 3.0, 0.5)
 camera_yaw_slider = p.addUserDebugParameter("  Obrot kamery (Yaw)", -180, 180, 56)
 camera_pitch_slider = p.addUserDebugParameter("  Nachylenie kamery (Pitch)", -89, 89, 0)
 camera_height_slider = p.addUserDebugParameter("  Wysokosc kamery", -1.0, 1.0, 0.0)
 
-# ========================================
-# SLIDERY POZYCJI LEWEJ NOGI
-# ========================================
-left_x_slider = p.addUserDebugParameter("  L - X (przod/tyl)", -0.3, 0.3, 0.0)
-left_y_slider = p.addUserDebugParameter("  L - Y (bok)", -0.2, 0.2, 0.04)
-left_z_slider = p.addUserDebugParameter("  L - Z (gora/dol)", 0.006, 0.35, 0.006)
-
-# ========================================
-# SLIDERY POZYCJI PRAWEJ NOGI
-# ========================================
-right_x_slider = p.addUserDebugParameter("  P - X (przod/tyl)", -0.3, 0.3, 0.0)
-right_y_slider = p.addUserDebugParameter("  P - Y (bok)", -0.2, 0.2, -0.04)
-right_z_slider = p.addUserDebugParameter("  P - Z (gora/dol)", 0.006, 0.35, 0.006)
+# Slidery parametrów chodu
+speed_slider = p.addUserDebugParameter("  Predkosc chodu", 0.1, 5.0, 1.0)
+swing_width_slider = p.addUserDebugParameter("  Szerokosc kroku", 0.05, 0.4, SWING_WIDTH)
+swing_height_slider = p.addUserDebugParameter("  Wysokosc kroku", 0.01, 0.15, SWING_HEIGHT)
 
 # ========================================
 # PARAMETRY IK
@@ -43,27 +48,66 @@ LEFT_EE = 6   # End effector lewej nogi
 RIGHT_EE = 13 # End effector prawej nogi
 
 target_orientation = p.getQuaternionFromEuler([0, 0, 0])
-
 num_joints = p.getNumJoints(robot)
+
+# ========================================
+# FUNKCJA TRAJEKTORII CHODU
+# ========================================
+def trot_gait(phase: float, swing_width: float, swing_height: float, swing_time: float, x_offset: float, z_offset: float):
+    """Zwraca x,z stopy przy zadanej fazie 0 - 1"""
+    half_w = swing_width / 2
+
+    if phase < swing_time:
+        # Faza swing - noga w powietrzu
+        t = phase / swing_time
+        angle = math.pi * (1 - t)
+        x = half_w * math.cos(angle) + x_offset
+        z = z_offset + swing_height * math.sin(angle)
+    else:
+        # Faza stance - noga na ziemi
+        t = (phase - swing_time) / (1 - swing_time)
+        x = half_w - swing_width * t + x_offset
+        z = z_offset
+
+    return x, z
+
+# ========================================
+# ZMIENNE STANU
+# ========================================
+phase = 0.0
+start_time = time.time()
 
 # ========================================
 # GŁÓWNA PĘTLA SYMULACJI
 # ========================================
 while True:
     # ------------------------------------
-    # ODCZYT POZYCJI Z SLIDERÓW
+    # AKTUALIZACJA FAZY
     # ------------------------------------
-    left_target = [
-        p.readUserDebugParameter(left_x_slider),
-        p.readUserDebugParameter(left_y_slider),
-        p.readUserDebugParameter(left_z_slider)
-    ]
+    current_time = time.time()
+    speed = p.readUserDebugParameter(speed_slider)
+    dt = 1./240.
+    phase += speed * dt
+    phase = phase % 1.0  # Zapętlenie 0-1
     
-    right_target = [
-        p.readUserDebugParameter(right_x_slider),
-        p.readUserDebugParameter(right_y_slider),
-        p.readUserDebugParameter(right_z_slider)
-    ]
+    # ------------------------------------
+    # ODCZYT PARAMETRÓW Z SLIDERÓW
+    # ------------------------------------
+    swing_width = p.readUserDebugParameter(swing_width_slider)
+    swing_height = p.readUserDebugParameter(swing_height_slider)
+    
+    # ------------------------------------
+    # OBLICZENIE POZYCJI NÓG
+    # ------------------------------------
+    # Lewa noga - faza 0
+    left_phase = phase
+    left_x, left_z = trot_gait(left_phase, swing_width, swing_height, SWING_TIME, X_OFFSET, Z_OFFSET)
+    left_target = [left_x, LEFT_Y, left_z]
+    
+    # Prawa noga - przesunięta o 180° (0.5 fazy)
+    right_phase = (phase + 0.5) % 1.0
+    right_x, right_z = trot_gait(right_phase, swing_width, swing_height, SWING_TIME, X_OFFSET, Z_OFFSET)
+    right_target = [right_x, RIGHT_Y, right_z]
 
     # ------------------------------------
     # IK LEWA NOGA
@@ -94,41 +138,21 @@ while True:
     # ------------------------------------
     joint_angles = [0.0] * num_joints
 
-    # Przypisz kąty z lewego IK
-    # left_joint_positions[0-5] → joint_angles[0-5] (lewa noga)
-    # left_joint_positions[6-11] → ignorujemy (to prawa noga z tego samego wywołania IK)
-    # Joint 6 jest FIXED - nie trzeba ustawiać
-    for i in range(0, 6):  # Tylko ruchome jointy lewej nogi (0-5)
+    # Przypisz kąty z lewego IK (jointy 0-5)
+    for i in range(0, 6):
         joint_angles[i] = left_joint_positions[i]
 
-    # Przypisz kąty z prawego IK
-    # right_joint_positions[0-5] → ignorujemy (to lewa noga z tego samego wywołania IK)
-    # right_joint_positions[6-11] → joint_angles[7-12] (prawa noga, z przesunięciem!)
-    # Joint 13 jest FIXED - nie trzeba ustawiać
-    for i in range(6, 12):  # Pozycje 6-11 w tablicy IK
-        joint_angles[i + 1] = right_joint_positions[i]  # Mapuj na jointy 7-12
-
+    # Przypisz kąty z prawego IK (jointy 7-12)
+    for i in range(6, 12):
+        joint_angles[i + 1] = right_joint_positions[i]
 
     # ------------------------------------
-    # WYDRUKUJ TABLICĘ JOINT_ANGLES
+    # WYDRUKUJ STAN (co 0.5s)
     # ------------------------------------
-    print("\n" + "="*60)
-    print("TABLICA JOINT_ANGLES (po scaleniu)")
-    print("="*60)
-
-    print("\nLEWA NOGA (jointy 0-6):")
-    print("-"*40)
-    for i in range(0, min(7, len(joint_angles))):
-        deg = np.degrees(joint_angles[i])
-        print(f"  joint_angles[{i:2d}] = {joint_angles[i]:8.4f} rad  ({deg:8.2f}°)")
-
-    print("\nPRAWA NOGA (jointy 7-13):")
-    print("-"*40)
-    for i in range(7, min(14, len(joint_angles))):
-        deg = np.degrees(joint_angles[i])
-        print(f"  joint_angles[{i:2d}] = {joint_angles[i]:8.4f} rad  ({deg:8.2f}°)")
-
-    print("\n" + "="*60)
+    if int((current_time - start_time) * 2) != int((current_time - start_time - dt) * 2):
+        print("\n" + "="*60)
+        print(f"FAZA: {phase:.3f} | LEWA: ({left_x:.3f}, {left_z:.3f}) | PRAWA: ({right_x:.3f}, {right_z:.3f})")
+        print("="*60)
 
     # ------------------------------------
     # USTAWIENIE PRZEGUBÓW
@@ -158,4 +182,4 @@ while True:
     # KROK SYMULACJI
     # ------------------------------------
     p.stepSimulation()
-    time.sleep(1./240.)
+    time.sleep(dt)
