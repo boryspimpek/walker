@@ -30,6 +30,7 @@ target_y = 0.08
 target_z = 0.1
 
 ee_index = 6
+
 # ========================================
 # GŁÓWNA PĘTLA SYMULACJI
 # ========================================
@@ -62,26 +63,7 @@ while True:
     # ------------------------------------
     for i in range(len(joint_positions)):
         p.resetJointState(robot, i, joint_positions[i])
-    
-    # ------------------------------------
-    # WYŚWIETL POZYCJĘ END EFFEKTORA
-    # ------------------------------------
-    end_effector_state = p.getLinkState(robot, 4)
-    end_effector_pos = end_effector_state[0]  # Pozycja world
-    end_effector_orn = end_effector_state[1]  # Orientacja (quaternion)
-    end_effector_euler = p.getEulerFromQuaternion(end_effector_orn)
-    
-    print("\nPOZYCJA END EFFEKTORA:")
-    print(f"  Pozycja:    [{end_effector_pos[0]:7.4f}, {end_effector_pos[1]:7.4f}, {end_effector_pos[2]:7.4f}]")
-    print(f"  Orientacja: [{np.degrees(end_effector_euler[0]):7.2f}°, {np.degrees(end_effector_euler[1]):7.2f}°, {np.degrees(end_effector_euler[2]):7.2f}°]")
-    
-    print("\nPOZYCJA DOCELOWA:")
-    print(f"  Target:     [{target_position[0]:7.4f}, {target_position[1]:7.4f}, {target_position[2]:7.4f}]")
-    
-    # Oblicz błąd pozycji
-    error = np.linalg.norm(np.array(end_effector_pos) - np.array(target_position))
-    print(f"  Błąd:       {error:7.4f} m")
-    
+        
     # ------------------------------------
     # AKTUALIZUJ KAMERĘ
     # ------------------------------------
