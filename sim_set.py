@@ -1,3 +1,4 @@
+import math
 import pybullet as p
 import pybullet_data
 import time
@@ -10,80 +11,92 @@ p.connect(p.GUI)
 p.setAdditionalSearchPath(pybullet_data.getDataPath())
 p.setGravity(0, 0, -9.81)
 
-# Załaduj scenę
 p.loadURDF("plane.urdf")
-robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.325], useFixedBase=True)
+robot = p.loadURDF("Walker.urdf", basePosition=[0, 0, 0.302], useFixedBase=False)
+
+num_joints = p.getNumJoints(robot)
 
 # ========================================
-# SLIDERY DO KONTROLI KAMERY
+# SLIDERY KAMERY
 # ========================================
 camera_distance_slider = p.addUserDebugParameter("  Odleglosc kamery", 0.1, 3.0, 0.5)
-camera_yaw_slider = p.addUserDebugParameter("  Obrot kamery (Yaw)", -180, 180, -0)
-camera_pitch_slider = p.addUserDebugParameter("  Nachylenie kamery (Pitch)", -89, 89, 0)
-camera_height_slider = p.addUserDebugParameter("  Wysokosc kamery", -1.0, 1.0, 0.0)
+camera_yaw_slider = p.addUserDebugParameter("  Yaw", -180, 180, 0)
+camera_pitch_slider = p.addUserDebugParameter("  Pitch", -89, 89, -10)
+camera_height_slider = p.addUserDebugParameter("  Wysokosc", -1.0, 1.0, 0.0)
+
 
 # ========================================
-# PARAMETRY DOCELOWE IK
+# IK — Funkcja inverse kinematics
 # ========================================
-target_x = 0.08
-target_y = 0.08
-target_z = 0.1
+def solve_ik_2d(x, z, l1, l2, elbow_up=False):
+    cos_theta2 = (x*x + z*z - l1*l1 - l2*l2) / (2 * l1 * l2)
+    cos_theta2 = np.clip(cos_theta2, -1.0, 1.0)
 
-ee_index = 6
+    theta2 = math.acos(cos_theta2)
+    if not elbow_up:
+        theta2 = -theta2
+
+    k1 = l1 + l2 * math.cos(theta2)
+    k2 = l2 * math.sin(theta2)
+    theta1 = math.atan2(z, x) - math.atan2(k2, k1)
+
+    return theta1, theta2
+
 
 # ========================================
-# GŁÓWNA PĘTLA SYMULACJI
+# PARAMETRY NOGI
+# ========================================
+l1 = 0.067
+l2 = 0.067
+x_target = 0
+z_target = -0.134
+
+theta1, theta3 = solve_ik_2d(x_target, z_target, l1, l2)
+
+# Domyślnie wszystkie przeguby na zero
+joint_targets = [0.0] * num_joints
+
+# Ustaw tylko robotowe przeguby
+joint_targets[1] = -theta1 - 1.57
+joint_targets[2] = -theta1 - 1.57
+joint_targets[3] = -theta3 - theta1 - 1.57
+joint_targets[4] = theta3 + theta1 + 1.57
+
+print("=================================================")
+print("theta1:", math.degrees(theta1), "deg")
+print("theta3:", math.degrees(theta3), "deg")
+print("=================================================")
+print(math.degrees(joint_targets[1]))
+print(math.degrees(joint_targets[2]))
+print(math.degrees(joint_targets[3]))
+print(math.degrees(joint_targets[4]))
+
+# ========================================
+# GŁÓWNA PĘTLA
 # ========================================
 while True:
-    # ------------------------------------
-    # OBLICZ INVERSE KINEMATICS
-    # ------------------------------------
-    target_position = [target_x, target_y, target_z]
-    target_orientation = p.getQuaternionFromEuler([0, 0, 0])
-    
-    joint_positions = p.calculateInverseKinematics(
-        robot,
-        endEffectorLinkIndex=ee_index,
-        targetPosition=target_position,
-        targetOrientation=target_orientation,
-        maxNumIterations=100,
-        residualThreshold=1e-5
-    )
-    
-    # ------------------------------------
-    # WYŚWIETL OBLICZONE KĄTY
-    # ------------------------------------
-    print("=" * 50)
-    print("OBLICZONE KĄTY Z IK:")
-    for i, angle in enumerate(joint_positions):
-        print(f"  Przegub {i}: {angle:7.4f} rad ({np.degrees(angle):7.2f}°)")
-    
-    # ------------------------------------
-    # USTAW PRZEGUBY NATYCHMIAST
-    # ------------------------------------
-    for i in range(len(joint_positions)):
-        p.resetJointState(robot, i, joint_positions[i])
-        
-    # ------------------------------------
-    # AKTUALIZUJ KAMERĘ
-    # ------------------------------------
-    camera_distance = p.readUserDebugParameter(camera_distance_slider)
-    camera_yaw = p.readUserDebugParameter(camera_yaw_slider)
-    camera_pitch = p.readUserDebugParameter(camera_pitch_slider)
-    camera_height = p.readUserDebugParameter(camera_height_slider)
-    
-    robot_pos, robot_orn = p.getBasePositionAndOrientation(robot)
-    camera_target = [robot_pos[0], robot_pos[1], robot_pos[2] + camera_height]
-    
+    for jid in range(num_joints):
+        p.setJointMotorControl2(
+            robot, jid,
+            p.POSITION_CONTROL,
+            targetPosition=joint_targets[jid],
+            force=500
+        )
+
+    cam_dist = p.readUserDebugParameter(camera_distance_slider)
+    cam_yaw = p.readUserDebugParameter(camera_yaw_slider)
+    cam_pitch = p.readUserDebugParameter(camera_pitch_slider)
+    cam_height = p.readUserDebugParameter(camera_height_slider)
+
+    base_pos, _ = p.getBasePositionAndOrientation(robot)
+    cam_target = [base_pos[0], base_pos[1], base_pos[2] + cam_height]
+
     p.resetDebugVisualizerCamera(
-        cameraDistance=camera_distance,
-        cameraYaw=camera_yaw,
-        cameraPitch=camera_pitch,
-        cameraTargetPosition=camera_target
+        cameraDistance=cam_dist,
+        cameraYaw=cam_yaw,
+        cameraPitch=cam_pitch,
+        cameraTargetPosition=cam_target
     )
-    
-    # ------------------------------------
-    # KROK SYMULACJI
-    # ------------------------------------
+
     p.stepSimulation()
     time.sleep(1./240.)

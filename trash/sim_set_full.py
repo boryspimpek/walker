@@ -67,7 +67,7 @@ def get_leg_targets(sliders):
 
     left = [p.readUserDebugParameter(sliders["Lx"]),
             p.readUserDebugParameter(sliders["Ly"]),
-            p.readUserDebugParameter(sliders["Lz"])]
+            p.readUserDebugParameter(sliders["Rz"])]
 
     right = [p.readUserDebugParameter(sliders["Rx"]),
              p.readUserDebugParameter(sliders["Ry"]),
@@ -102,7 +102,11 @@ def apply_joint_angles(robot, joint_angles):
     """Ustawiający wszystkie stawy"""
     for i, angle in enumerate(joint_angles):
         p.setJointMotorControl2(robot, i, p.POSITION_CONTROL, 
-                                targetPosition=angle, force=500)
+                                targetPosition=angle,             
+                                force=2000,
+                                positionGain=0.8,      
+                                velocityGain=0.5, 
+                                maxVelocity=10)
 
 
 def update_camera(robot, sliders):
