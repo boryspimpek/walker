@@ -3,159 +3,143 @@ import pybullet_data
 import time
 import numpy as np
 
-# ========================================
-# INICJALIZACJA SYMULACJI
-# ========================================
-p.connect(p.GUI)
-p.setAdditionalSearchPath(pybullet_data.getDataPath())
-p.setGravity(0, 0, -9.81)
-
-# Załaduj scenę
-p.loadURDF("plane.urdf")
-robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.302], useFixedBase=True)
 
 # ========================================
-# SLIDERY DO KONTROLI KAMERY
+# KONFIGURACJA STAŁYCH
 # ========================================
-camera_distance_slider = p.addUserDebugParameter("  Odleglosc kamery", 0.1, 3.0, 0.5)
-camera_yaw_slider = p.addUserDebugParameter("  Obrot kamery (Yaw)", -180, 180, 56)
-camera_pitch_slider = p.addUserDebugParameter("  Nachylenie kamery (Pitch)", -89, 89, 0)
-camera_height_slider = p.addUserDebugParameter("  Wysokosc kamery", -1.0, 1.0, 0.0)
+LEFT_EE = 6
+RIGHT_EE = 13
 
 # ========================================
-# SLIDERY POZYCJI LEWEJ NOGI
+# FUNKCJE POMOCNICZE
 # ========================================
-left_x_slider = p.addUserDebugParameter("  L - X (przod/tyl)", -0.3, 0.3, 0.0)
-left_y_slider = p.addUserDebugParameter("  L - Y (bok)", -0.2, 0.2, 0.04)
-left_z_slider = p.addUserDebugParameter("  L - Z (gora/dol)", 0.006, 0.35, 0.006)
+def init_simulation():
+    """Inicjalizacja środowiska + ładowanie robota"""
+    p.connect(p.GUI)
+    p.setAdditionalSearchPath(pybullet_data.getDataPath())
+    p.setGravity(0, 0, -9.81)
+
+    p.loadURDF("plane.urdf")
+    robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.302], useFixedBase=False)
+    return robot
+
+
+def configure_dynamics(robot):
+    """Ustawienia tłumienia i tarcia"""
+    num_joints = p.getNumJoints(robot)
+
+    for j in range(num_joints):
+        p.changeDynamics(robot, j,
+                         linearDamping=0.02,
+                         angularDamping=0.02,
+                         jointDamping=0.05)
+
+    for ee in [LEFT_EE, RIGHT_EE]:
+        p.changeDynamics(robot, ee,
+                         lateralFriction=1.3,
+                         spinningFriction=0.1,
+                         rollingFriction=0.1)
+
+
+def create_sliders():
+    """Tworzy wszystkie slidery i zwraca je w słowniku"""
+
+    sliders = {}
+
+    sliders["cam_dist"] = p.addUserDebugParameter("  Odleglosc kamery", 0.1, 3.0, 0.5)
+    sliders["cam_yaw"] = p.addUserDebugParameter("  Obrot kamery (Yaw)", -180, 180, 56)
+    sliders["cam_pitch"] = p.addUserDebugParameter("  Nachylenie kamery (Pitch)", -89, 89, 0)
+    sliders["cam_h"] = p.addUserDebugParameter("  Wysokosc kamery", -1.0, 1.0, 0.0)
+
+    sliders["Lx"] = p.addUserDebugParameter("  L - X", -0.3, 0.3, 0.0)
+    sliders["Ly"] = p.addUserDebugParameter("  L - Y", -0.2, 0.2, 0.04)
+    sliders["Lz"] = p.addUserDebugParameter("  L - Z", 0.006, 0.35, 0.006)
+
+    sliders["Rx"] = p.addUserDebugParameter("  P - X", -0.3, 0.3, 0.0)
+    sliders["Ry"] = p.addUserDebugParameter("  P - Y", -0.2, 0.2, -0.04)
+    sliders["Rz"] = p.addUserDebugParameter("  P - Z", 0.006, 0.35, 0.006)
+
+    return sliders
+
+
+def get_leg_targets(sliders):
+    """Czyta wartości pozycji nóg ze sliderów"""
+
+    left = [p.readUserDebugParameter(sliders["Lx"]),
+            p.readUserDebugParameter(sliders["Ly"]),
+            p.readUserDebugParameter(sliders["Lz"])]
+
+    right = [p.readUserDebugParameter(sliders["Rx"]),
+             p.readUserDebugParameter(sliders["Ry"]),
+             p.readUserDebugParameter(sliders["Rz"])]
+
+    return left, right
+
+
+def compute_IK(robot, left_target, right_target):
+    """Oblicza IK i scala obie nogi w jedną tablicę jointów"""
+    num_joints = p.getNumJoints(robot)
+    target_orientation = p.getQuaternionFromEuler([0, 0, 0])
+
+    left_ik = p.calculateInverseKinematics(
+        robot, LEFT_EE, left_target, target_orientation)
+
+    right_ik = p.calculateInverseKinematics(
+        robot, RIGHT_EE, right_target, target_orientation)
+
+    joint_angles = [0] * num_joints
+
+    for i in range(6):  # lewa noga
+        joint_angles[i] = left_ik[i]
+
+    for i in range(6, 12):  # prawa noga -> przesunięcie o 1
+        joint_angles[i + 1] = right_ik[i]
+
+    return joint_angles
+
+
+def apply_joint_angles(robot, joint_angles):
+    """Ustawiający wszystkie stawy"""
+    for i, angle in enumerate(joint_angles):
+        p.setJointMotorControl2(robot, i, p.POSITION_CONTROL, 
+                                targetPosition=angle, force=500)
+
+
+def update_camera(robot, sliders):
+    """Kontrola kamery sliderami"""
+    dist = p.readUserDebugParameter(sliders["cam_dist"])
+    yaw = p.readUserDebugParameter(sliders["cam_yaw"])
+    pitch = p.readUserDebugParameter(sliders["cam_pitch"])
+    height = p.readUserDebugParameter(sliders["cam_h"])
+
+    pos, _ = p.getBasePositionAndOrientation(robot)
+    target = [pos[0], pos[1], pos[2] + height]
+
+    p.resetDebugVisualizerCamera(dist, yaw, pitch, target)
+
 
 # ========================================
-# SLIDERY POZYCJI PRAWEJ NOGI
+# GŁÓWNY PROGRAM
 # ========================================
-right_x_slider = p.addUserDebugParameter("  P - X (przod/tyl)", -0.3, 0.3, 0.0)
-right_y_slider = p.addUserDebugParameter("  P - Y (bok)", -0.2, 0.2, -0.04)
-right_z_slider = p.addUserDebugParameter("  P - Z (gora/dol)", 0.006, 0.35, 0.006)
+def main():
+    robot = init_simulation()
+    configure_dynamics(robot)
+    sliders = create_sliders()
 
-# ========================================
-# PARAMETRY IK
-# ========================================
-LEFT_EE = 6   # End effector lewej nogi
-RIGHT_EE = 13 # End effector prawej nogi
-
-target_orientation = p.getQuaternionFromEuler([0, 0, 0])
-
-num_joints = p.getNumJoints(robot)
-
-# ========================================
-# GŁÓWNA PĘTLA SYMULACJI
-# ========================================
-while True:
-    # ------------------------------------
-    # ODCZYT POZYCJI Z SLIDERÓW
-    # ------------------------------------
-    left_target = [
-        p.readUserDebugParameter(left_x_slider),
-        p.readUserDebugParameter(left_y_slider),
-        p.readUserDebugParameter(left_z_slider)
-    ]
-    
-    right_target = [
-        p.readUserDebugParameter(right_x_slider),
-        p.readUserDebugParameter(right_y_slider),
-        p.readUserDebugParameter(right_z_slider)
-    ]
-
-    # ------------------------------------
-    # IK LEWA NOGA
-    # ------------------------------------
-    left_joint_positions = p.calculateInverseKinematics(
-        robot,
-        endEffectorLinkIndex=LEFT_EE,
-        targetPosition=left_target,
-        targetOrientation=target_orientation,
-        maxNumIterations=100,
-        residualThreshold=1e-6
-    )
-
-    # ------------------------------------
-    # IK PRAWA NOGA
-    # ------------------------------------
-    right_joint_positions = p.calculateInverseKinematics(
-        robot,
-        endEffectorLinkIndex=RIGHT_EE,
-        targetPosition=right_target,
-        targetOrientation=target_orientation,
-        maxNumIterations=100,
-        residualThreshold=1e-6
-    )
-
-    # ------------------------------------
-    # INICJALIZUJ TABLICĘ KĄTÓW
-    # ------------------------------------
-    joint_angles = [0.0] * num_joints
-
-    # Przypisz kąty z lewego IK
-    # left_joint_positions[0-5] → joint_angles[0-5] (lewa noga)
-    # left_joint_positions[6-11] → ignorujemy (to prawa noga z tego samego wywołania IK)
-    # Joint 6 jest FIXED - nie trzeba ustawiać
-    for i in range(0, 6):  # Tylko ruchome jointy lewej nogi (0-5)
-        joint_angles[i] = left_joint_positions[i]
-
-    # Przypisz kąty z prawego IK
-    # right_joint_positions[0-5] → ignorujemy (to lewa noga z tego samego wywołania IK)
-    # right_joint_positions[6-11] → joint_angles[7-12] (prawa noga, z przesunięciem!)
-    # Joint 13 jest FIXED - nie trzeba ustawiać
-    for i in range(6, 12):  # Pozycje 6-11 w tablicy IK
-        joint_angles[i + 1] = right_joint_positions[i]  # Mapuj na jointy 7-12
+    while True:
+        left_target, right_target = get_leg_targets(sliders)
+        joint_angles = compute_IK(robot, left_target, right_target)
+        left_leg_angles = joint_angles[:7]
+        right_leg_angles = joint_angles[7:14]
+        print("Lewa noga:  ", ["{:.3f}".format(a) for a in left_leg_angles])
+        print("Prawa noga: ", ["{:.3f}".format(a) for a in right_leg_angles])        
+        apply_joint_angles(robot, joint_angles)
+        update_camera(robot, sliders)
 
 
-    # ------------------------------------
-    # WYDRUKUJ TABLICĘ JOINT_ANGLES
-    # ------------------------------------
-    print("\n" + "="*60)
-    print("TABLICA JOINT_ANGLES (po scaleniu)")
-    print("="*60)
+        p.stepSimulation()
+        time.sleep(1 / 240.0)
 
-    print("\nLEWA NOGA (jointy 0-6):")
-    print("-"*40)
-    for i in range(0, min(7, len(joint_angles))):
-        deg = np.degrees(joint_angles[i])
-        print(f"  joint_angles[{i:2d}] = {joint_angles[i]:8.4f} rad  ({deg:8.2f}°)")
 
-    print("\nPRAWA NOGA (jointy 7-13):")
-    print("-"*40)
-    for i in range(7, min(14, len(joint_angles))):
-        deg = np.degrees(joint_angles[i])
-        print(f"  joint_angles[{i:2d}] = {joint_angles[i]:8.4f} rad  ({deg:8.2f}°)")
-
-    print("\n" + "="*60)
-
-    # ------------------------------------
-    # USTAWIENIE PRZEGUBÓW
-    # ------------------------------------
-    for i in range(num_joints):
-        p.resetJointState(robot, i, joint_angles[i])
-
-    # ------------------------------------
-    # AKTUALIZACJA KAMERY
-    # ------------------------------------
-    camera_distance = p.readUserDebugParameter(camera_distance_slider)
-    camera_yaw = p.readUserDebugParameter(camera_yaw_slider)
-    camera_pitch = p.readUserDebugParameter(camera_pitch_slider)
-    camera_height = p.readUserDebugParameter(camera_height_slider)
-
-    robot_pos, _ = p.getBasePositionAndOrientation(robot)
-    camera_target = [robot_pos[0], robot_pos[1], robot_pos[2] + camera_height]
-
-    p.resetDebugVisualizerCamera(
-        cameraDistance=camera_distance,
-        cameraYaw=camera_yaw,
-        cameraPitch=camera_pitch,
-        cameraTargetPosition=camera_target
-    )
-
-    # ------------------------------------
-    # KROK SYMULACJI
-    # ------------------------------------
-    p.stepSimulation()
-    time.sleep(1./240.)
+if __name__ == "__main__":
+    main()
