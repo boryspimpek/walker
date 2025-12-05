@@ -24,6 +24,11 @@ camera_yaw_slider = p.addUserDebugParameter("  Yaw", -180, 180, 0)
 camera_pitch_slider = p.addUserDebugParameter("  Pitch", -89, 89, -10)
 camera_height_slider = p.addUserDebugParameter("  Wysokosc", -1.0, 1.0, 0.0)
 
+# ========================================
+# SLIDERY DLA STÓP (NOWOŚĆ!)
+# ========================================
+x_slider = p.addUserDebugParameter("X target", -0.15, 0.15, 0.0)
+z_slider = p.addUserDebugParameter("Z target", -0.20, 0.0, -0.134)
 
 # ========================================
 # IK — Funkcja inverse kinematics
@@ -48,33 +53,24 @@ def solve_ik_2d(x, z, l1, l2, elbow_up=False):
 # ========================================
 l1 = 0.067
 l2 = 0.067
-x_target = 0
-z_target = -0.134
-
-theta1, theta3 = solve_ik_2d(x_target, z_target, l1, l2)
-
-# Domyślnie wszystkie przeguby na zero
 joint_targets = [0.0] * num_joints
-
-# Ustaw tylko robotowe przeguby
-joint_targets[1] = -theta1 - 1.57
-joint_targets[2] = -theta1 - 1.57
-joint_targets[3] = -theta3 - theta1 - 1.57
-joint_targets[4] = theta3 + theta1 + 1.57
-
-print("=================================================")
-print("theta1:", math.degrees(theta1), "deg")
-print("theta3:", math.degrees(theta3), "deg")
-print("=================================================")
-print(math.degrees(joint_targets[1]))
-print(math.degrees(joint_targets[2]))
-print(math.degrees(joint_targets[3]))
-print(math.degrees(joint_targets[4]))
 
 # ========================================
 # GŁÓWNA PĘTLA
 # ========================================
 while True:
+    # Pobierz wartości sliderów IK
+    x_target = p.readUserDebugParameter(x_slider)
+    z_target = p.readUserDebugParameter(z_slider)
+
+    theta1, theta3 = solve_ik_2d(x_target, z_target, l1, l2)
+
+    # Ustaw przeguby na podstawie IK
+    joint_targets[1] = -theta1 - 1.57
+    joint_targets[2] = -theta1 - 1.57
+    joint_targets[3] = -theta3 - theta1 - 1.57
+    joint_targets[4] = theta3 + theta1 + 1.57
+
     for jid in range(num_joints):
         p.setJointMotorControl2(
             robot, jid,
