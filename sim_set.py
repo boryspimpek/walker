@@ -19,15 +19,15 @@ num_joints = p.getNumJoints(robot)
 # SLIDERY KAMERY
 # ========================================
 camera_distance_slider = p.addUserDebugParameter("  Odleglosc kamery", 0.1, 3.0, 0.5)
-camera_yaw_slider = p.addUserDebugParameter("  Yaw", -180, 180, 45)
+camera_yaw_slider = p.addUserDebugParameter("  Obrot", -180, 180, 45)
 camera_pitch_slider = p.addUserDebugParameter("  Pitch", -89, 89, -20)
 camera_height_slider = p.addUserDebugParameter("  Wysokosc", -1.0, 1.0, 0.0)
 
 # ========================================
 # SLIDERY DLA STÓP
 # ========================================
-x_slider = p.addUserDebugParameter("X target", -0.15, 0.15, 0.0)
-z_slider = p.addUserDebugParameter("Z target", -0.134, -0.01, -0.134)
+x_slider = p.addUserDebugParameter("  X target", -0.15, 0.15, 0.0)
+z_slider = p.addUserDebugParameter("  Z target", -0.134, -0.01, -0.134)
 
 # ========================================
 # IK — Funkcja inverse kinematics
@@ -47,7 +47,19 @@ def solve_ik_2d(x, z, elbow_up=False):
     k2 = l2 * math.sin(theta2)
     theta1 = math.atan2(z, x) - math.atan2(k2, k1)
 
-    return theta1, theta2
+    joint_targets = [0.0] * 7  # zawsze mamy 7 wartości
+
+    # Ustawiamy tylko 1-4
+    joint_targets[0] = 0
+    joint_targets[1] = -theta1 - 1.57
+    joint_targets[2] = -theta1 - 1.57
+    joint_targets[3] = -theta2 - theta1 - 1.57
+    joint_targets[4] = theta2 + theta1 + 1.57
+    joint_targets[5] = 0
+    joint_targets[6] = 0
+
+    # joint_targets[0], [5], [6] zostają 0
+    return joint_targets
 
 # ========================================
 # GŁÓWNA PĘTLA
@@ -56,13 +68,7 @@ while True:
     x_target = p.readUserDebugParameter(x_slider)
     z_target = p.readUserDebugParameter(z_slider)
 
-    theta1, theta3 = solve_ik_2d(x_target, z_target)
-
-    joint_targets = [0.0] * num_joints
-    joint_targets[1] = -theta1 - 1.57
-    joint_targets[2] = -theta1 - 1.57
-    joint_targets[3] = -theta3 - theta1 - 1.57
-    joint_targets[4] = theta3 + theta1 + 1.57
+    joint_targets = solve_ik_2d(x_target, z_target)
 
     for jid in range(num_joints):
         p.setJointMotorControl2(

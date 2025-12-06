@@ -7,19 +7,12 @@ import time
 # ========================================
 # PARAMETRY CHODU
 # ========================================
-SWING_WIDTH = 0.04
+SWING_WIDTH = 0.022
 SWING_HEIGHT = 0.05
-SWING_TIME = 0.2
-Z_OFFSET = 0.02
+SWING_TIME = 0.5
+Z_OFFSET = -0.1
 X_OFFSET = 0.0
-
 GAIT_SPEED = 0.5  # cykle/s
-END_EFFECTOR_INDEX = 6
-
-# Linki powiązane z constraintem gear
-JOINT_GEAR_PARENT = 1
-JOINT_GEAR_CHILD = 2
-
 
 def init_simulation():
     p.connect(p.GUI)
@@ -27,29 +20,58 @@ def init_simulation():
     p.setGravity(0, 0, -9.81)
 
     p.loadURDF("plane.urdf")
-    robot = p.loadURDF("Walker.urdf", [0, 0, 0.290], useFixedBase=True)
+    robot = p.loadURDF("Walker.urdf", [0.011, 0, 0.302-0.034], useFixedBase=False)
 
     return robot
 
-
 def set_initial_pose(robot):
     initial_angles = [
-        -0.0000,   # Joint 0
-        -0.2942,   # Joint 1
-        -0.2942,   # Joint 2
-         0.6530,   # Joint 3
-        -0.6530,   # Joint 4
-         0.0000,   # Joint 5
-         0.0000    # Joint 6
+        -0.0000,                        # Joint 0
+        -0.6099875983549431,            # Joint 1
+        -0.6099875983549431,            # Joint 2
+        0.831601579504891,              # Joint 3
+        -0.831601579504891,             # Joint 4
+         0.0000,                        # Joint 5
+         0.0000,                        # Joint 6
     ]
 
     for i, angle in enumerate(initial_angles):
         p.resetJointState(robot, i, angle)
 
+def solve_ik_2d(x, z, leg, elbow_up=False):
+    l1 = 0.067
+    l2 = 0.067
 
-# ========================================
-# FUNKCJE POMOCNICZE
-# ========================================
+    cos_theta2 = (x*x + z*z - l1*l1 - l2*l2) / (2 * l1 * l2)
+    cos_theta2 = np.clip(cos_theta2, -1.0, 1.0)
+
+    theta2 = math.acos(cos_theta2)
+    if not elbow_up:
+        theta2 = -theta2
+
+    k1 = l1 + l2 * math.cos(theta2)
+    k2 = l2 * math.sin(theta2)
+    theta1 = math.atan2(z, x) - math.atan2(k2, k1)
+
+    joint_targets = [0.0] * 14  # zawsze mamy 14 wartości
+    if leg == "left":
+        joint_targets[0] = 0
+        joint_targets[1] = -theta1 - 1.57
+        joint_targets[2] = -theta1 - 1.57
+        joint_targets[3] = -theta2 - theta1 - 1.57
+        joint_targets[4] = theta2 + theta1 + 1.57
+        joint_targets[5] = 0
+        joint_targets[6] = 0
+    else: 
+        joint_targets[7] = 0
+        joint_targets[8] = -theta1 - 1.57
+        joint_targets[9] = theta1 + 1.57
+        joint_targets[10] = theta2 + theta1 + 1.57
+        joint_targets[11] = -theta2 - theta1 - 1.57
+        joint_targets[12] = 0
+        joint_targets[13] = 0
+    return joint_targets
+
 def trot_gait(phase: float):
     """Zwraca x,z stopy przy zadanej fazie 0 - 1"""
     half_w = SWING_WIDTH / 2
@@ -66,22 +88,6 @@ def trot_gait(phase: float):
 
     return x, z
 
-
-def setup_gear_constraint(robot):
-    cid = p.createConstraint(
-        parentBodyUniqueId=robot,
-        parentLinkIndex=JOINT_GEAR_PARENT,
-        childBodyUniqueId=robot,
-        childLinkIndex=JOINT_GEAR_CHILD,
-        jointType=p.JOINT_GEAR,
-        jointAxis=[0, 0, 0],
-        parentFramePosition=[0, 0, 0],
-        childFramePosition=[0, 0, 0]
-    )
-    p.changeConstraint(cid, gearRatio=-1, maxForce=100000, erp=1.0)
-    return cid
-
-
 def init_camera_ui():
     return {
         "dist": p.addUserDebugParameter("  Odleglosc kamery", 0.1, 3.0, 0.6),
@@ -89,7 +95,6 @@ def init_camera_ui():
         "pitch": p.addUserDebugParameter("  Nachylenie Pitch", -89, 89, 0),
         "height": p.addUserDebugParameter("  Wysokosc kamery", -1.0, 1.0, 0),
     }
-
 
 def update_camera(robot, ui):
     robot_pos, _ = p.getBasePositionAndOrientation(robot)
@@ -105,19 +110,6 @@ def update_camera(robot, ui):
         ]
     )
 
-
-def apply_joint_control(robot, target_positions):
-    for i in range(min(len(target_positions), p.getNumJoints(robot))):
-        if i == JOINT_GEAR_CHILD:
-            p.setJointMotorControl2(robot, i, p.VELOCITY_CONTROL,
-                                    force=0, targetVelocity=0)
-        else:
-            p.setJointMotorControl2(robot, i, p.POSITION_CONTROL,
-                                    targetPosition=target_positions[i],
-                                    force=2000, positionGain=0.8,
-                                    velocityGain=1, maxVelocity=10)
-
-
 def debug_info(robot):
     print("\n" + "=" * 50)
     print("AKTUALNE KĄTY PRZEGUBÓW:")
@@ -126,15 +118,11 @@ def debug_info(robot):
         angle = p.getJointState(robot, i)[0]
         print(f"Joint {i}: {np.degrees(angle):7.2f}°")
 
-
-# ========================================
-# GŁÓWNA PĘTLA
-# ========================================
 def main():
     robot = init_simulation()
-    setup_gear_constraint(robot)
     set_initial_pose(robot)
     camera_ui = init_camera_ui()
+    num_joints = p.getNumJoints(robot)
 
     # --- Pozwól zobaczyć pozycję startową przed ruchem ---
     for _ in range(500):  # ~0.5 sekundy spokojnego widoku
@@ -149,13 +137,16 @@ def main():
         phase = (frame * GAIT_SPEED / 240.0) % 1.0
 
         x, z = trot_gait(phase)
-        joint_positions = p.calculateInverseKinematics(
-            robot, END_EFFECTOR_INDEX, [x, 0.0, z],
-            targetOrientation=p.getQuaternionFromEuler([0, 0, 0]),
-            maxNumIterations=100, residualThreshold=1e-4
-        )
+        joint_targets = solve_ik_2d(x, z, "left")
 
-        apply_joint_control(robot, joint_positions)
+        for jid in range(6):
+            p.setJointMotorControl2(
+                robot, jid,
+                p.POSITION_CONTROL,
+                targetPosition=joint_targets[jid],
+                force=500
+            )
+
         update_camera(robot, camera_ui)
 
         p.stepSimulation()
