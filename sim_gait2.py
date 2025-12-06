@@ -125,7 +125,7 @@ def apply_joint_targets(robot, joint_targets, force=500):
 def init_camera_ui():
     return {
         "dist": p.addUserDebugParameter("  Odleglosc kamery", 0.1, 3.0, 0.6),
-        "yaw": p.addUserDebugParameter("  Obrot kamery Yaw", -180, 180, 0),
+        "yaw": p.addUserDebugParameter("  Obrot kamery Yaw", -180, 180, 50),
         "pitch": p.addUserDebugParameter("  Nachylenie Pitch", -89, 89, 0),
         "height": p.addUserDebugParameter("  Wysokosc kamery", -1.0, 1.0, 0),
     }

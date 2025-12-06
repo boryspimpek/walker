@@ -49,16 +49,14 @@ def solve_ik_2d(x, z, elbow_up=False):
 
     joint_targets = [0.0] * 7  # zawsze mamy 7 wartości
 
-    # Ustawiamy tylko 1-4
-    joint_targets[0] = 0
+    joint_targets[0] = 0 # foot roll
     joint_targets[1] = -theta1 - 1.57
     joint_targets[2] = -theta1 - 1.57
     joint_targets[3] = -theta2 - theta1 - 1.57
     joint_targets[4] = theta2 + theta1 + 1.57
-    joint_targets[5] = 0
-    joint_targets[6] = 0
+    joint_targets[5] = 0 # fixed joint
+    joint_targets[6] = 0 # fixed joint
 
-    # joint_targets[0], [5], [6] zostają 0
     return joint_targets
 
 # ========================================

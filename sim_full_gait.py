@@ -76,21 +76,21 @@ def solve_ik(x_target, z_target, leg, elbow_up=False):
 
     joint_targets = [0.0] * 14
     if leg == "left":
-        joint_targets[0] = 0
+        joint_targets[0] = 0                            # hip roll
         joint_targets[1] = -theta1 - 1.57
         joint_targets[2] = -theta1 - 1.57
         joint_targets[3] = -theta2 - theta1 - 1.57
         joint_targets[4] = theta2 + theta1 + 1.57
-        joint_targets[5] = 0
-        joint_targets[6] = 0
+        joint_targets[5] = 0                            # foot roll
+        joint_targets[6] = 0                            # fixed joint
     else:
-        joint_targets[7] = 0
+        joint_targets[7] = 0                            # hip roll
         joint_targets[8] = -theta1 - 1.57
         joint_targets[9] = theta1 + 1.57
         joint_targets[10] = theta2 + theta1 + 1.57
         joint_targets[11] = -theta2 - theta1 - 1.57
-        joint_targets[12] = 0
-        joint_targets[13] = 0
+        joint_targets[12] = 0                           # foot roll
+        joint_targets[13] = 0                           # fixed joint
     
     return joint_targets
 
