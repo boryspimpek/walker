@@ -7,13 +7,13 @@ import math
 # ========================================
 # STAŁE KONFIGURACYJNE
 # ========================================
-SWING_WIDTH = 0.04
+TOTAL_HEIGHT = 0.302
+SWING_WIDTH = 0.05
 SWING_HEIGHT = 0.03
 SWING_TIME = 0.5
-Z_OFFSET = 0.011
+Z_OFFSET = 0.02            # minimalne ugiecie nóg aby mieć zasięg w poziomie         
 X_OFFSET = 0.0
-LEFT_Y = 0.04
-RIGHT_Y = -0.04
+GAIT_SPEED = 0.8            # cykle/s
 
 # ========================================
 # INICJALIZACJA
@@ -23,7 +23,7 @@ def init_simulation():
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     p.setGravity(0, 0, -9.81)
     p.loadURDF("plane.urdf")
-    robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.290], useFixedBase=True)
+    robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.302], useFixedBase=True)
     return robot
 
 def create_debug_sliders():
@@ -46,69 +46,84 @@ def trot_gait(phase: float, swing_width: float, swing_height: float):
     if phase < SWING_TIME:
         # Faza swing - noga w powietrzu
         t = phase / SWING_TIME
-        angle = math.pi * (1 - t)
-        x = half_w * math.cos(angle) + X_OFFSET
-        z = Z_OFFSET + swing_height * math.sin(angle)
+        angle = math.pi * t
+        x = -half_w + swing_width * t + X_OFFSET
+        z = (TOTAL_HEIGHT - Z_OFFSET) - swing_height * math.sin(angle)  # ZMIANA: minus zamiast plus
     else:
         # Faza stance - noga na ziemi
         t = (phase - SWING_TIME) / (1 - SWING_TIME)
         x = half_w - swing_width * t + X_OFFSET
-        z = Z_OFFSET
+        z = TOTAL_HEIGHT - Z_OFFSET
 
     return x, z
 
-def solve_ik(x_target, z_target, leg, elbow_up=False):
-    """Rozwiązuje kinematykę odwrotną dla danej nogi"""
-    x = x_target
-    z = z_target - 0.090 - 0.077 + 0.033
-    l1 = 0.067
-    l2 = 0.067
+def solve_ik_3d(x, y, zt, leg, elbow_up=False):
+    z = zt - 0.128
+    l1, l2, l3 = 0.04, 0.067, 0.067
+    hip_roll = np.arctan2(y, z)
+    
+    D = np.sqrt(y**2 + z**2)
+    print(f"D: {D:.3f}")
+    
+    r = np.sqrt(x**2 + (D-l1)**2)
+    print(f"r: {r:.3f}")
+    
+    cos_knee = (l2**2 + l3**2 - r**2) / (2 * l2 * l3)
+    print(f"cos_knee: {cos_knee:.3f}")
+    
+    if cos_knee < -1 or cos_knee > 1:
+        raise ValueError(f"Pozycja ({x:.3f}, {y:.3f}, {z:.3f}) jest poza zasięgiem nogi")
+    
+    knee_pitch = np.pi - np.arccos(cos_knee)
 
-    cos_theta2 = (x*x + z*z - l1*l1 - l2*l2) / (2 * l1 * l2)
-    cos_theta2 = np.clip(cos_theta2, -1.0, 1.0)
-    theta2 = math.acos(cos_theta2)
-    if not elbow_up:
-        theta2 = -theta2
+    alpha = np.arctan2(x, (D-l1))
+    cos_beta = (l2**2 + r**2 - l3**2) / (2 * l2 * r)
+    beta = np.arccos(np.clip(cos_beta, -1, 1))
+    hip_pitch = -(alpha + beta)
 
-    k1 = l1 + l2 * math.cos(theta2)
-    k2 = l2 * math.sin(theta2)
-    theta1 = math.atan2(z, x) - math.atan2(k2, k1)
-
+    print(f"Noga {leg} - Obliczone kąty stawów:")
+    print(f"  Hip Roll:  {np.degrees(hip_roll):7.2f}°")
+    print(f"  Hip Pitch: {np.degrees(hip_pitch):7.2f}°")
+    print(f"  Knee Pitch: {np.degrees(knee_pitch):7.2f}°")
+    
+    # Mapowanie na joiny robota
     joint_targets = [0.0] * 14
     if leg == "left":
-        joint_targets[0] = 0                            # hip roll
-        joint_targets[1] = -theta1 - 1.57
-        joint_targets[2] = -theta1 - 1.57
-        joint_targets[3] = -theta2 - theta1 - 1.57
-        joint_targets[4] = theta2 + theta1 + 1.57
-        joint_targets[5] = 0                            # foot roll
-        joint_targets[6] = 0                            # fixed joint
-    else:
-        joint_targets[7] = 0                            # hip roll
-        joint_targets[8] = -theta1 - 1.57
-        joint_targets[9] = theta1 + 1.57
-        joint_targets[10] = theta2 + theta1 + 1.57
-        joint_targets[11] = -theta2 - theta1 - 1.57
-        joint_targets[12] = 0                           # foot roll
-        joint_targets[13] = 0                           # fixed joint
-    
+        joint_targets[0] = hip_roll 
+        joint_targets[1] = hip_pitch
+        joint_targets[2] = hip_pitch
+        joint_targets[3] = knee_pitch + hip_pitch
+        joint_targets[4] = -(knee_pitch + hip_pitch)
+        joint_targets[5] = -hip_roll
+        joint_targets[6] = 0  # fixed joint
+    else:  # right
+        joint_targets[7] = hip_roll 
+        joint_targets[8] = hip_pitch
+        joint_targets[9] = -hip_pitch
+        joint_targets[10] = -(knee_pitch + hip_pitch)
+        joint_targets[11] = knee_pitch + hip_pitch
+        joint_targets[12] = -hip_roll
+        joint_targets[13] = 0  # fixed joint
+
     return joint_targets
 
 def calculate_leg_positions(phase, swing_width, swing_height):
     left_phase = phase
     left_x, left_z = trot_gait(left_phase, swing_width, swing_height)
+    left_y = 0
     
     right_phase = (phase + 0.5) % 1.0
     right_x, right_z = trot_gait(right_phase, swing_width, swing_height)
+    right_y = 0
     
-    return (left_x, left_z), (right_x, right_z)
+    return (left_x, left_y, left_z), (right_x, right_y, right_z)
 
 def combine_leg_targets(left_pos, right_pos):
-    left_x, left_z = left_pos
-    right_x, right_z = right_pos
+    left_x, left_y, left_z = left_pos
+    right_x, right_y, right_z = right_pos
     
-    left_targets = solve_ik(left_x, left_z, "left")
-    right_targets = solve_ik(right_x, right_z, "right")
+    left_targets = solve_ik_3d(left_x, left_y, left_z, "left")
+    right_targets = solve_ik_3d(right_x, right_y, right_z, "right")
     
     joint_targets = [0.0] * 14
     for i in range(14):

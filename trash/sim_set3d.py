@@ -28,47 +28,53 @@ camera_height_slider = p.addUserDebugParameter("  Wysokosc", -1.0, 1.0, 0.0)
 # ========================================
 x_slider = p.addUserDebugParameter("  X target (przod-tyl)", -0.15, 0.15, 0.0)
 y_slider = p.addUserDebugParameter("  Y target (lewo-prawo)", -0.134, 0.134, 0.0)
-z_slider = p.addUserDebugParameter("  Z target (gora-dol)", 0, 0.134, 0.067)
+z_slider = p.addUserDebugParameter("  Z target (gora-dol)", -0.135, 0.174, 0.067+0.04)
 
 # ========================================
 # IK — Funkcja inverse kinematics 3D
 # ========================================
 def solve_ik_3d(x, y, z, elbow_up=False):
-    L1, L2 = 0.067, 0.067
-    # --- Hip Roll ---
-    theta1 = math.atan2(y, z)
+    l1, l2, l3 = 0.04, 0.067, 0.067
+    hip_roll = np.arctan2(y, z)
+    
+    D = np.sqrt(y**2 + z**2)
+    print(f"D: {D:.3f}")
+    
+    r = np.sqrt(x**2 + (D-l1)**2)
+    print(f"r: {r:.3f}")
+    
+    cos_knee = (l2**2 + l3**2 - r**2) / (2 * l2 * l3)
+    print(f"cos_knee: {cos_knee:.3f}")
+    
+    if cos_knee < -1 or cos_knee > 1:
+        raise ValueError(f"Pozycja ({x}, {y}, {z}) jest poza zasięgiem nogi")
+    
+    knee_pitch = np.pi - np.arccos(cos_knee)
 
-    # Project into XZ plane after roll
-    z_prime = math.sqrt(y**2 + z**2)
-    x_prime = x
+    cos_beta = (l2**2 + r**2 - l3**2) / (2 * l2 * r)
+    
+    alpha = np.arctan2(x, (D-l1))
+    cos_beta = (l2**2 + r**2 - l3**2) / (2 * l2 * r)
+    beta = np.arccos(np.clip(cos_beta, -1, 1))
+    hip_pitch = -(alpha + beta)
 
-    # Distance in pitch plane
-    D = math.sqrt(x_prime**2 + z_prime**2)
+    print("Obliczone kąty stawów:")
+    print(f"Hip Roll:  {np.degrees(hip_roll):.2f}°")
+    print(f"Hip Pitch: {np.degrees(hip_pitch):.2f}°")
+    print(f"Knee Pitch: {np.degrees(knee_pitch):.2f}°")
+    
 
-    # Check reach limit
-    if D > (L1 + L2):
-        raise ValueError("Target position outside reachable workspace!")
-
-    # Knee angle - law of cosines
-    theta3 = math.pi - math.acos((L1**2 + L2**2 - D**2) / (2 * L1 * L2))
-
-    # Hip pitch
-    alpha = math.atan2(z_prime, x_prime)
-    beta = math.acos((L1**2 + D**2 - L2**2) / (2 * L1 * D))
-    theta2 = alpha - beta
-
-    # KROK 6: Mapowanie na joiny robota
+    # Mapowanie na joiny robota
     joint_targets = [0.0] * 7
     
-    joint_targets[0] = theta1 
-    joint_targets[1] = - (1.5788 - theta2)
-    joint_targets[2] = - (1.5788 - theta2)
-    joint_targets[3] = theta3 - (1.5788 - theta2)
-    joint_targets[4] = abs(theta2 - 1.5788) - abs(theta3)
-    joint_targets[5] = - theta1  
+    joint_targets[0] = hip_roll 
+    joint_targets[1] = hip_pitch
+    joint_targets[2] = hip_pitch
+    joint_targets[3] = knee_pitch + hip_pitch
+    joint_targets[4] = -(knee_pitch + hip_pitch)
+    joint_targets[5] = - hip_roll
     joint_targets[6] = 0  # fixed joint
     
-    print(f"IK Targets: x={x:.3f}, y={y:.3f}, z={z:.3f} => theta1={math.degrees(theta1):.3f}, theta2={math.degrees(theta2):.3f}, theta3={math.degrees(theta3):.3f}")
     print("Joint Targets (deg): [" + ", ".join(f"{math.degrees(j):.3f}" for j in joint_targets) + "]")
     return joint_targets
 
@@ -90,7 +96,15 @@ while True:
             targetPosition=joint_targets[jid],
             force=500
         )
-    
+
+    pos, orn = p.getLinkState(robot, 6)[:2]
+    euler_rad = p.getEulerFromQuaternion(orn)
+    euler_deg = np.degrees(euler_rad)
+    link_name = p.getJointInfo(robot, 6)[12].decode("utf-8")
+    print(f"Link '{link_name}'")
+    print("Pozycja końcówki stopy:", pos)
+    # print("Kąty Eulera w stopniach (roll, pitch, yaw):", euler_deg)
+
     cam_dist = p.readUserDebugParameter(camera_distance_slider)
     cam_yaw = p.readUserDebugParameter(camera_yaw_slider)
     cam_pitch = p.readUserDebugParameter(camera_pitch_slider)
