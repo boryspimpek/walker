@@ -4,6 +4,14 @@ import pybullet_data
 import time
 import numpy as np
 
+TOTAL_HEIGHT = 0.302
+SWING_WIDTH = 0.08
+SWING_HEIGHT = 0.03
+SWING_TIME = 0.2
+Z_OFFSET = 0.02
+X_OFFSET = 0.0
+CYCLE_PERIOD = 1.0  # Okres pełnego cyklu chodu w sekundach
+
 def initialize_simulation():
     """Inicjalizuje symulację PyBullet z GUI i ustawieniami podstawowymi."""
     p.connect(p.GUI)
@@ -16,19 +24,8 @@ def initialize_simulation():
     return robot
 
 def create_ui_sliders():
-    """Tworzy slidery kontroli dla osobnych końców nóg."""
+    """Tworzy slidery kontroli kamery."""
     sliders = {
-        # Lewa noga
-        'lx_target': p.addUserDebugParameter("Lewy X", -0.1, 0.1, 0.0),
-        'ly_target': p.addUserDebugParameter("Lewy Y", -0.1, 0.1, 0.0),
-        'lz_target': p.addUserDebugParameter("Lewy Z", 0, 0.302, 0.302),
-
-        # Prawa noga
-        'rx_target': p.addUserDebugParameter("Prawy X", -0.1, 0.1, 0.0),
-        'ry_target': p.addUserDebugParameter("Prawy Y", -0.1, 0.1, 0.0),
-        'rz_target': p.addUserDebugParameter("Prawy Z", 0, 0.302, 0.302),
-
-        # Kamera (zostawiam jak było)
         'camera_distance': p.addUserDebugParameter("  Odleglosc kamery", 0.1, 3.0, 0.5),
         'camera_yaw': p.addUserDebugParameter("  Obrot", -180, 180, 90),
         'camera_pitch': p.addUserDebugParameter("  Pitch", -89, 89, -0),
@@ -60,7 +57,6 @@ def solve_ik_3d(x, y, zt, leg, robot, elbow_up=False):
     base_pos, base_orn = p.getBasePositionAndOrientation(robot)
     base_euler = p.getEulerFromQuaternion(base_orn)
 
-    
     # Mapowanie na joiny robota
     joint_targets = [0.0] * 14
     if leg == "left":
@@ -81,6 +77,41 @@ def solve_ik_3d(x, y, zt, leg, robot, elbow_up=False):
         joint_targets[13] = 0  # fixed joint
 
     return joint_targets
+
+def trot_gait(phase):
+    """Generuje trajektorię ruchu dla chodu kłusem."""
+    half_w = SWING_WIDTH / 2
+
+    if phase < SWING_TIME:
+        t = phase / SWING_TIME
+        angle = math.pi * t
+        x = -half_w + SWING_WIDTH * t + X_OFFSET
+        z = (TOTAL_HEIGHT - Z_OFFSET) - SWING_HEIGHT * math.sin(angle)  
+    else:
+        t = (phase - SWING_TIME) / (1 - SWING_TIME)
+        x = half_w - SWING_WIDTH * t + X_OFFSET
+        z = TOTAL_HEIGHT - Z_OFFSET
+    return x, z
+
+def get_trot_leg_positions(time_sec):
+    """
+    Oblicza pozycje obu nóg w chodzie trot.
+    W trot, lewa i prawa noga są przesunięte w fazie o 0.5 (180 stopni).
+    """
+    # Normalizacja czasu do zakresu [0, 1]
+    phase = (time_sec % CYCLE_PERIOD) / CYCLE_PERIOD
+    
+    # Lewa noga
+    left_phase = phase
+    left_x, left_z = trot_gait(left_phase)
+    left_y = 0.0  # Środek (możesz dostosować dla szerokości postoju)
+    
+    # Prawa noga - przesunięta o pół cyklu
+    right_phase = (phase + 0.5) % 1.0
+    right_x, right_z = trot_gait(right_phase)
+    right_y = 0.0
+    
+    return (left_x, left_y, left_z), (right_x, right_y, right_z)
 
 def combine_leg_targets(left_targets, right_targets):
     """Łączy cele dla lewej i prawej nogi w jeden wektor."""
@@ -124,7 +155,6 @@ def debug_info(robot):
     for i in range(min(20, p.getNumJoints(robot))):
         angle = p.getJointState(robot, i)[0]
         print(f"Joint {i}: {angle:7.2f}°")
-        # print(f"Joint {i} (degrees): {np.degrees(angle):7.2f}°")
 
     print("base_link orientation:")
     base_pos, base_orn = p.getBasePositionAndOrientation(robot)
@@ -139,31 +169,28 @@ def debug_info(robot):
     print(f"Orientation (degrees): ({np.degrees(link_euler[0]):.2f}, {np.degrees(link_euler[1]):.2f}, {np.degrees(link_euler[2]):.2f})")
     print("=" * 50 + "\n")
 
-def read_target_positions(sliders):
-    """Odczytuje docelowe pozycje dla obu nóg."""
-    lx = p.readUserDebugParameter(sliders['lx_target'])
-    ly = p.readUserDebugParameter(sliders['ly_target'])
-    lz = p.readUserDebugParameter(sliders['lz_target'])
-
-    rx = p.readUserDebugParameter(sliders['rx_target'])
-    ry = p.readUserDebugParameter(sliders['ry_target'])
-    rz = p.readUserDebugParameter(sliders['rz_target'])
-
-    return (lx, ly, lz), (rx, ry, rz)
-
 def main():
     """Główna pętla symulacji."""
     robot = initialize_simulation()
     sliders = create_ui_sliders()
     
+    start_time = time.time()
+    
     while True:
-        (left_x, left_y, left_z), (right_x, right_y, right_z) = read_target_positions(sliders)
-
-        left_targets = solve_ik_3d(left_x, left_y, left_z, "left", robot)
-        right_targets = solve_ik_3d(right_x, right_y, right_z, "right", robot)
+        current_time = time.time() - start_time
         
-        joint_targets = combine_leg_targets(left_targets, right_targets)
-        apply_joint_targets(robot, joint_targets)
+        # Pobierz pozycje nóg z trajektorii trot
+        (left_x, left_y, left_z), (right_x, right_y, right_z) = get_trot_leg_positions(current_time)
+
+        # Oblicz IK dla obu nóg
+        try:
+            left_targets = solve_ik_3d(left_x, left_y, left_z, "left", robot)
+            right_targets = solve_ik_3d(right_x, right_y, right_z, "right", robot)
+            
+            joint_targets = combine_leg_targets(left_targets, right_targets)
+            apply_joint_targets(robot, joint_targets)
+        except ValueError as e:
+            print(f"IK Error: {e}")
         
         debug_info(robot)
         update_camera(robot, sliders)
