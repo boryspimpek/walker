@@ -20,9 +20,8 @@ def init_simulation():
     p.setGravity(0, 0, -9.81)
 
     p.loadURDF("plane.urdf")
-    robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.302], useFixedBase=False)
+    robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.302], useFixedBase=True)
     return robot
-
 
 def configure_dynamics(robot):
     """Ustawienia tłumienia i tarcia"""
@@ -30,16 +29,15 @@ def configure_dynamics(robot):
 
     for j in range(num_joints):
         p.changeDynamics(robot, j,
-                         linearDamping=0.02,
-                         angularDamping=0.02,
-                         jointDamping=0.05)
+                         linearDamping=0.8,
+                         angularDamping=0.8,
+                         jointDamping=0.8)
 
     for ee in [LEFT_EE, RIGHT_EE]:
         p.changeDynamics(robot, ee,
                          lateralFriction=1.3,
                          spinningFriction=0.1,
                          rollingFriction=0.1)
-
 
 def create_sliders():
     """Tworzy wszystkie slidery i zwraca je w słowniku"""
@@ -61,20 +59,18 @@ def create_sliders():
 
     return sliders
 
-
 def get_leg_targets(sliders):
     """Czyta wartości pozycji nóg ze sliderów"""
 
     left = [p.readUserDebugParameter(sliders["Lx"]),
             p.readUserDebugParameter(sliders["Ly"]),
-            p.readUserDebugParameter(sliders["Rz"])]
+            p.readUserDebugParameter(sliders["Lz"])]
 
     right = [p.readUserDebugParameter(sliders["Rx"]),
              p.readUserDebugParameter(sliders["Ry"]),
              p.readUserDebugParameter(sliders["Rz"])]
 
     return left, right
-
 
 def compute_IK(robot, left_target, right_target):
     """Oblicza IK i scala obie nogi w jedną tablicę jointów"""
@@ -97,17 +93,10 @@ def compute_IK(robot, left_target, right_target):
 
     return joint_angles
 
-
 def apply_joint_angles(robot, joint_angles):
     """Ustawiający wszystkie stawy"""
     for i, angle in enumerate(joint_angles):
-        p.setJointMotorControl2(robot, i, p.POSITION_CONTROL, 
-                                targetPosition=angle,             
-                                force=2000,
-                                positionGain=0.8,      
-                                velocityGain=0.5, 
-                                maxVelocity=10)
-
+        p.resetJointState(robot, i, angle)
 
 def update_camera(robot, sliders):
     """Kontrola kamery sliderami"""
@@ -125,21 +114,25 @@ def update_camera(robot, sliders):
 # ========================================
 # GŁÓWNY PROGRAM
 # ========================================
+
 def main():
     robot = init_simulation()
     configure_dynamics(robot)
+    
     sliders = create_sliders()
 
     while True:
         left_target, right_target = get_leg_targets(sliders)
         joint_angles = compute_IK(robot, left_target, right_target)
+
+        # Wyświetlenie jointów
         left_leg_angles = joint_angles[:7]
         right_leg_angles = joint_angles[7:14]
         print("Lewa noga:  ", ["{:.3f}".format(a) for a in left_leg_angles])
         print("Prawa noga: ", ["{:.3f}".format(a) for a in right_leg_angles])        
+
         apply_joint_angles(robot, joint_angles)
         update_camera(robot, sliders)
-
 
         p.stepSimulation()
         time.sleep(1 / 240.0)

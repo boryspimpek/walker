@@ -8,7 +8,7 @@ import time
 # PARAMETRY CHODU
 # ========================================
 TOTAL_HEIGHT = 0.302
-SWING_WIDTH = 0.1
+SWING_WIDTH = 0.02
 SWING_HEIGHT = 0.03
 SWING_TIME = 0.5
 Z_OFFSET = 0.015            # minimalne ugiecie nóg aby mieć zasięg w poziomie         
@@ -21,7 +21,7 @@ def init_simulation():
     p.setGravity(0, 0, -9.81)
 
     p.loadURDF("plane.urdf")
-    robot = p.loadURDF("Walker2.urdf", [0.011, 0, TOTAL_HEIGHT], useFixedBase=True)
+    robot = p.loadURDF("Walker2.urdf", [0.011, 0, TOTAL_HEIGHT], useFixedBase=False)
 
     return robot
 
@@ -45,8 +45,8 @@ def wait_for_stabilization(robot, camera_ui, duration_seconds=1):
 
     p.setGravity(0, 0, 0)
     
-    # for i, angle in enumerate(initial_angles):
-    #     p.resetJointState(robot, i, angle)
+    for i, angle in enumerate(initial_angles):
+        p.resetJointState(robot, i, angle)
     
     frames = int(240 * duration_seconds)
     for _ in range(frames):
@@ -171,7 +171,7 @@ def main():
     robot = init_simulation()
     camera_ui = init_camera_ui()
 
-    wait_for_stabilization(robot, camera_ui)
+    # wait_for_stabilization(robot, camera_ui)
 
     frame = 0
     while True:

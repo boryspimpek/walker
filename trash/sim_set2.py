@@ -140,8 +140,8 @@ def main():
     while True:
         x_target, y_target, z_target = read_target_positions(sliders)
         
-        left_targets = solve_ik_3d(x_target, y_target, z_target, "left")
-        right_targets = solve_ik_3d(x_target, y_target, z_target, "right")
+        left_targets = solve_ik_3d(x_target, -y_target, z_target, "left")
+        right_targets = solve_ik_3d(x_target, -y_target, z_target, "right")
         
         joint_targets = combine_leg_targets(left_targets, right_targets)
         apply_joint_targets(robot, joint_targets)
