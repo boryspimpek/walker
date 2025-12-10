@@ -9,6 +9,12 @@ SWING_TIME = 0.2
 Z_OFFSET = 0.02
 X_OFFSET = 0.0
 
+LEFT_FOOT_TILT = 15
+RIGHT_FOOT_TILT = 15
+LEFT_HIP_TILT = 5
+RIGHT_HIP_TILT = 5
+HOLD_TIME = SWING_TIME * 1 
+
 CYCLE_PERIOD = 4.0  # Okres pełnego cyklu chodu w sekundach
 
 def initialize_simulation():
@@ -17,7 +23,7 @@ def initialize_simulation():
     p.setGravity(0, 0, -9.81)
     
     p.loadURDF("plane.urdf")
-    robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.279], useFixedBase=False)
+    robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.302], useFixedBase=False)
     
     return robot
 
@@ -40,17 +46,15 @@ def create_ui_sliders():
         'camera_height': p.addUserDebugParameter("  Wysokosc", -1.0, 1.0, 0.0),
         'swing_height': p.addUserDebugParameter("  Wysokosc kroku", 0.0, 0.2, 0.0),
         'swing_width': p.addUserDebugParameter("  Szerokosc kroku", 0.0, 0.2, 0.0),
-        'tilt_amplitude': p.addUserDebugParameter("  Tilt", 0.0, 30, 0.1),
     }
     return sliders
 
-def solve_ik_3d(x, y, zt, leg, robot, tilt_offset=0.0, elbow_up=False):
+def solve_ik_3d(x, y, zt, leg, robot, phase=0.0, elbow_up=False):
     z = zt - 0.128
     l1, l2, l3 = 0.04, 0.067, 0.067
     hip_roll = np.arctan2(y, z)
     
     D = np.sqrt(y**2 + z**2)
-    
     r = np.sqrt(x**2 + (D-l1)**2)
     
     cos_knee = (l2**2 + l3**2 - r**2) / (2 * l2 * l3)
@@ -68,23 +72,32 @@ def solve_ik_3d(x, y, zt, leg, robot, tilt_offset=0.0, elbow_up=False):
     base_pos, base_orn = p.getBasePositionAndOrientation(robot)
     base_euler = p.getEulerFromQuaternion(base_orn)
 
+    # Pobierz wartości tilt
+    left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt = tilt(phase)
+    
+    # Konwersja stopni na radiany
+    left_foot_tilt_rad = np.radians(left_foot_tilt)
+    right_foot_tilt_rad = np.radians(right_foot_tilt)
+    left_hip_tilt_rad = np.radians(left_hip_tilt)
+    right_hip_tilt_rad = np.radians(right_hip_tilt)
+
     # Mapowanie na joiny robota z zastosowaniem tilt
     joint_targets = [0.0] * 14
     if leg == "left":
-        joint_targets[0] = hip_roll + tilt_offset  # Dodaj tilt do lewej nogi
+        joint_targets[0] = -left_hip_tilt_rad  # left hip roll
         joint_targets[1] = hip_pitch
         joint_targets[2] = hip_pitch
         joint_targets[3] = knee_pitch + hip_pitch
         joint_targets[4] = -(knee_pitch + hip_pitch)
-        joint_targets[5] = - (hip_roll + tilt_offset)
+        joint_targets[5] = left_foot_tilt_rad  # left foot roll
         joint_targets[6] = 0  # fixed joint
     else:  # right
-        joint_targets[7] = -hip_roll + tilt_offset  # Dodaj tilt do prawej nogi
+        joint_targets[7] = -right_hip_tilt_rad  # right hip roll
         joint_targets[8] = hip_pitch
         joint_targets[9] = -hip_pitch
         joint_targets[10] = -(knee_pitch + hip_pitch)
         joint_targets[11] = knee_pitch + hip_pitch
-        joint_targets[12] = -(-hip_roll + tilt_offset)
+        joint_targets[12] = right_foot_tilt_rad  # right foot roll
         joint_targets[13] = 0  # fixed joint
 
     return joint_targets
@@ -103,20 +116,58 @@ def trot_gait(phase, swing_width, swing_height):
         z = TOTAL_HEIGHT - Z_OFFSET
     return x, z
 
-def tilt(phase, tilt_amp):
+def tilt(phase):
+    # Normalizacja fazy na zakres 0–1 (opcjonalnie – jeśli phase może być spoza zakresu)
     phase = phase % 1.0
-    mid_swing = SWING_TIME / 2
+
+    # Wyznaczenie granic
+    p1 = HOLD_TIME               # Przechył w prawo
+    p2 = 0.5                     # Koniec jazdy prawo → lewo
+    p3 = 0.5 + HOLD_TIME         # Przechył w lewo
+    # p4 = 1.0                   # Koniec jazdy lewo → prawo
+
+    # --- FAZA 1: stałe przechylenie w prawo ---
+    if phase < p1:
+        return (
+            0 - LEFT_FOOT_TILT,
+            0 - RIGHT_FOOT_TILT,
+            0,
+            0 - RIGHT_HIP_TILT
+        )
+
+    # --- FAZA 2: przejazd prawo → lewo ---
+    elif phase < p2:
+        progress = (phase - p1) / (p2 - p1)
+        return (
+            0 - LEFT_FOOT_TILT  + 2 * LEFT_FOOT_TILT * progress,
+            0 - RIGHT_FOOT_TILT + 2 * RIGHT_FOOT_TILT * progress,
+            0 + LEFT_HIP_TILT * progress,
+            0 - RIGHT_HIP_TILT + RIGHT_HIP_TILT * progress
+        )
+
+    # --- FAZA 3: stałe przechylenie w lewo ---
+    elif phase < p3:
+        return (
+            0 + LEFT_FOOT_TILT,
+            0 + RIGHT_FOOT_TILT,
+            0 + LEFT_HIP_TILT,
+            0
+        )
+
+    # --- FAZA 4: przejazd lewo → prawo ---
+    else:
+        progress = (phase - p3) / (1.0 - p3)
+        return (
+            0 + LEFT_FOOT_TILT  - 2 * LEFT_FOOT_TILT * progress,
+            0 + RIGHT_FOOT_TILT - 2 * RIGHT_FOOT_TILT * progress,
+            0 + LEFT_HIP_TILT   - LEFT_HIP_TILT * progress,
+            0 - RIGHT_HIP_TILT * progress
+        )
     
-    # Cosinus ma szczyt w 0, więc przesuwamy fazę
-    return tilt_amp * math.cos(2 * math.pi * (phase - mid_swing))
-    
-def get_trot_leg_positions(time_sec, swing_width, swing_height, tilt_amp):
+def get_trot_leg_positions(time_sec, swing_width, swing_height):
     # Normalizacja czasu do zakresu [0, 1]
     phase = (time_sec % CYCLE_PERIOD) / CYCLE_PERIOD
-    
-    # Oblicz tilt dla aktualnej fazy
-    tilt_offset = tilt(phase, np.radians(tilt_amp))
-    
+        
     # Lewa noga
     left_phase = phase
     left_x, left_z = trot_gait(left_phase, swing_width, swing_height)
@@ -127,7 +178,7 @@ def get_trot_leg_positions(time_sec, swing_width, swing_height, tilt_amp):
     right_x, right_z = trot_gait(right_phase, swing_width, swing_height)
     right_y = 0
     
-    return (left_x, left_y, left_z), (right_x, right_y, right_z), tilt_offset
+    return (left_x, left_y, left_z), (right_x, right_y, right_z)
 
 def combine_leg_targets(left_targets, right_targets):
     """Łączy cele dla lewej i prawej nogi w jeden wektor."""
@@ -191,7 +242,18 @@ def main():
     """Główna pętla symulacji."""
     robot = initialize_simulation()
     sliders = create_ui_sliders()
+
+    p.setGravity(0, 0, 0)
+    init_pose(robot)
+        
+    for _ in range(int(2 * 240)):  # 240 Hz
+        update_camera(robot, sliders)
+        debug_info(robot)
+        p.stepSimulation()
+        time.sleep(1./240.)
     
+    p.setGravity(0, 0, -9.81)
+
     start_time = time.time()
     
     while True:
@@ -200,21 +262,18 @@ def main():
         # Odczytaj wartości ze sliderów
         swing_width = p.readUserDebugParameter(sliders['swing_width'])
         swing_height = p.readUserDebugParameter(sliders['swing_height'])
-        tilt_amp = p.readUserDebugParameter(sliders['tilt_amplitude'])
         
         # Oblicz fazę dla lewej nogi
         phase = (current_time % CYCLE_PERIOD) / CYCLE_PERIOD
         
-        # Oblicz wartość tilt dla aktualnej fazy
-        tilt_offset = tilt(phase, np.radians(tilt_amp))     
 
-        (left_x, left_y, left_z), (right_x, right_y, right_z), tilt_offset = get_trot_leg_positions(
-            current_time, swing_width, swing_height, tilt_amp)
+        (left_x, left_y, left_z), (right_x, right_y, right_z) = get_trot_leg_positions(
+            current_time, swing_width, swing_height)
 
         try:
-            left_targets = solve_ik_3d(left_x, left_y, left_z, "left", robot, tilt_offset)
-            right_targets = solve_ik_3d(right_x, right_y, right_z, "right", robot, tilt_offset)
-            
+            left_targets = solve_ik_3d(left_x, left_y, left_z, "left", robot, phase)
+            right_targets = solve_ik_3d(right_x, right_y, right_z, "right", robot, phase)
+
             joint_targets = combine_leg_targets(left_targets, right_targets)
             apply_joint_targets(robot, joint_targets)
         except ValueError as e:
