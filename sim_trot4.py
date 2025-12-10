@@ -5,31 +5,42 @@ import time
 import numpy as np
 
 TOTAL_HEIGHT = 0.302
-SWING_WIDTH = 0.0
-SWING_HEIGHT = 0.03
 SWING_TIME = 0.2
 Z_OFFSET = 0.02
 X_OFFSET = 0.0
-CYCLE_PERIOD = 1.0  # Okres pełnego cyklu chodu w sekundach
+
+CYCLE_PERIOD = 4.0  # Okres pełnego cyklu chodu w sekundach
 
 def initialize_simulation():
-    """Inicjalizuje symulację PyBullet z GUI i ustawieniami podstawowymi."""
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     p.setGravity(0, 0, -9.81)
     
     p.loadURDF("plane.urdf")
-    robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.302], useFixedBase=False)
+    robot = p.loadURDF("Walker2.urdf", basePosition=[0, 0, 0.279], useFixedBase=False)
     
     return robot
 
+def init_pose(robot):
+    left_targets = solve_ik_3d(0.0, 0.05, TOTAL_HEIGHT - Z_OFFSET, "left", robot)
+    right_targets = solve_ik_3d(0.0, -0.05, TOTAL_HEIGHT - Z_OFFSET, "right", robot)
+
+    joint_targets = [0.0] * 14
+    for i in range(14):
+        joint_targets[i] = left_targets[i] if left_targets[i] != 0 else right_targets[i]
+    num_joints = p.getNumJoints(robot)
+    for i in range(num_joints):
+        p.resetJointState(robot, i, joint_targets[i])
+
 def create_ui_sliders():
-    """Tworzy slidery kontroli kamery."""
     sliders = {
         'camera_distance': p.addUserDebugParameter("  Odleglosc kamery", 0.1, 3.0, 0.5),
         'camera_yaw': p.addUserDebugParameter("  Obrot", -180, 180, 90),
         'camera_pitch': p.addUserDebugParameter("  Pitch", -89, 89, -0),
-        'camera_height': p.addUserDebugParameter("  Wysokosc", -1.0, 1.0, 0.0)
+        'camera_height': p.addUserDebugParameter("  Wysokosc", -1.0, 1.0, 0.0),
+        'swing_height': p.addUserDebugParameter("  Wysokosc kroku", 0.0, 0.2, 0.0),
+        'swing_width': p.addUserDebugParameter("  Szerokosc kroku", 0.0, 0.2, 0.0),
+        'tilt_amplitude': p.addUserDebugParameter("  Tilt", 0.0, 0.1, 0),
     }
     return sliders
 
@@ -65,7 +76,7 @@ def solve_ik_3d(x, y, zt, leg, robot, elbow_up=False):
         joint_targets[2] = hip_pitch
         joint_targets[3] = knee_pitch + hip_pitch
         joint_targets[4] = -(knee_pitch + hip_pitch)
-        joint_targets[5] = -base_euler[0] - hip_roll  
+        joint_targets[5] = - hip_roll  
         joint_targets[6] = 0  # fixed joint
     else:  # right
         joint_targets[7] = -hip_roll 
@@ -73,43 +84,45 @@ def solve_ik_3d(x, y, zt, leg, robot, elbow_up=False):
         joint_targets[9] = -hip_pitch
         joint_targets[10] = -(knee_pitch + hip_pitch)
         joint_targets[11] = knee_pitch + hip_pitch
-        joint_targets[12] = -base_euler[0] + hip_roll  
+        joint_targets[12] = hip_roll
         joint_targets[13] = 0  # fixed joint
 
     return joint_targets
 
-def trot_gait(phase):
-    """Generuje trajektorię ruchu dla chodu kłusem."""
-    half_w = SWING_WIDTH / 2
+def trot_gait(phase, swing_width, swing_height):
+    half_w = swing_width / 2
 
     if phase < SWING_TIME:
         t = phase / SWING_TIME
         angle = math.pi * t
-        x = -half_w + SWING_WIDTH * t + X_OFFSET
-        z = (TOTAL_HEIGHT - Z_OFFSET) - SWING_HEIGHT * math.sin(angle)  
+        x = -half_w + swing_width * t + X_OFFSET
+        z = (TOTAL_HEIGHT - Z_OFFSET) - swing_height * math.sin(angle)  
     else:
         t = (phase - SWING_TIME) / (1 - SWING_TIME)
-        x = half_w - SWING_WIDTH * t + X_OFFSET
+        x = half_w - swing_width * t + X_OFFSET
         z = TOTAL_HEIGHT - Z_OFFSET
     return x, z
 
-def get_trot_leg_positions(time_sec):
-    """
-    Oblicza pozycje obu nóg w chodzie trot.
-    W trot, lewa i prawa noga są przesunięte w fazie o 0.5 (180 stopni).
-    """
+def tilt(phase, tilt_amp):
+    phase = phase % 1.0
+    mid_swing = SWING_TIME / 2
+    
+    # Cosinus ma szczyt w 0, więc przesuwamy fazę
+    return tilt_amp * math.cos(2 * math.pi * (phase - mid_swing))
+    
+def get_trot_leg_positions(time_sec, swing_width, swing_height, tilt_amp):
     # Normalizacja czasu do zakresu [0, 1]
     phase = (time_sec % CYCLE_PERIOD) / CYCLE_PERIOD
     
     # Lewa noga
     left_phase = phase
-    left_x, left_z = trot_gait(left_phase)
-    left_y = 0.0  # Środek (możesz dostosować dla szerokości postoju)
+    left_x, left_z = trot_gait(left_phase, swing_width, swing_height)
+    left_y = tilt(left_phase, tilt_amp)  
     
     # Prawa noga - przesunięta o pół cyklu
     right_phase = (phase + 0.5) % 1.0
-    right_x, right_z = trot_gait(right_phase)
-    right_y = 0.0
+    right_x, right_z = trot_gait(right_phase, swing_width, swing_height)
+    right_y = tilt(right_phase, tilt_amp)
     
     return (left_x, left_y, left_z), (right_x, right_y, right_z)
 
@@ -164,8 +177,10 @@ def debug_info(robot):
 
     print("Left Foot orientation:")
     link_state = p.getLinkState(robot, 6)
+    link_pos = link_state[0]
     link_orn = link_state[1]  
     link_euler = p.getEulerFromQuaternion(link_orn)
+    print(f"Position: ({link_pos[0]:.3f}, {link_pos[1]:.3f}, {link_pos[2]:.3f})")
     print(f"Orientation (degrees): ({np.degrees(link_euler[0]):.2f}, {np.degrees(link_euler[1]):.2f}, {np.degrees(link_euler[2]):.2f})")
     print("=" * 50 + "\n")
 
@@ -173,16 +188,31 @@ def main():
     """Główna pętla symulacji."""
     robot = initialize_simulation()
     sliders = create_ui_sliders()
+
+    # p.setGravity(0, 0, 0)
+    # init_pose(robot)
+        
+    # for _ in range(int(2 * 240)):  # 240 Hz
+    #     update_camera(robot, sliders)
+    #     debug_info(robot)
+    #     p.stepSimulation()
+    #     time.sleep(1./240.)
     
+    # p.setGravity(0, 0, -9.81)
     start_time = time.time()
     
     while True:
         current_time = time.time() - start_time
         
-        # Pobierz pozycje nóg z trajektorii trot
-        (left_x, left_y, left_z), (right_x, right_y, right_z) = get_trot_leg_positions(current_time)
+        # Odczytaj wartości ze sliderów
+        swing_width = p.readUserDebugParameter(sliders['swing_width'])
+        swing_height = p.readUserDebugParameter(sliders['swing_height'])
+        tilt_amp = p.readUserDebugParameter(sliders['tilt_amplitude'])
+        
+        (left_x, left_y, left_z), (right_x, right_y, right_z) = get_trot_leg_positions(
+            current_time, swing_width, swing_height, tilt_amp
+        )
 
-        # Oblicz IK dla obu nóg
         try:
             left_targets = solve_ik_3d(left_x, left_y, left_z, "left", robot)
             right_targets = solve_ik_3d(right_x, right_y, right_z, "right", robot)

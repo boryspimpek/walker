@@ -146,7 +146,7 @@ def read_target_positions(sliders):
     lz = p.readUserDebugParameter(sliders['lz_target'])
 
     rx = p.readUserDebugParameter(sliders['rx_target'])
-    ry = p.readUserDebugParameter(sliders['ry_target'])
+    ry = -p.readUserDebugParameter(sliders['ly_target'])
     rz = p.readUserDebugParameter(sliders['rz_target'])
 
     return (lx, ly, lz), (rx, ry, rz)
