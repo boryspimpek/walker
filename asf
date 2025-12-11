@@ -1,132 +1,65 @@
 import numpy as np
 
-def tilt(phase, max_tilt_angle=20):
-    """
-    Oblicza kąty stawów w zależności od fazy ruchu.
-    
-    Args:
-        phase: Faza ruchu (0-1), gdzie 0 i 1 to ta sama pozycja
-        max_tilt_angle: Maksymalny kąt przechyłu w stopniach
-    
-    Returns:
-        dict: Słownik z kątami LEFT_FOOT, RIGHT_FOOT, LEFT_HIP, RIGHT_HIP
-    """
+
+def tilt(phase, max_tilt_angle):
     # Stałe geometryczne
-    a = 0.03781
-    b = 0.2451325
+    a = 0.037
+    b = 0.245
     d = 0.080
 
-    # Normalizacja fazy
+
+    # Oblicz min_tilt_angle jako left_foot dla max_tilt_angle
+    gamma_max = np.radians(90 + max_tilt_angle)
+    c_max = np.sqrt(a**2 + b**2 - 2 * a * b * np.cos(gamma_max))
+        
+    cos_beta_max = (a**2 + c_max**2 - b**2) / (2 * a * c_max)
+    beta_max = np.arccos(np.clip(cos_beta_max, -1, 1))
+    
+    cos_beta_prim_max = (b**2 + c_max**2 - d**2) / (2 * b * c_max)
+    beta_prim_max = np.arccos(np.clip(cos_beta_prim_max, -1, 1))
+    
+    min_tilt_angle = np.degrees(beta_max + beta_prim_max) - 90
+
+    # Parametry kosinusoidy
+    center = (max_tilt_angle + min_tilt_angle) / 2
+    print(center)
+    amplitude = (max_tilt_angle - min_tilt_angle) / 2
+    print(amplitude)
+
+    # Normalizuj fazę
     phase = phase % 1.0
     
-    # Obliczenie aktualnego kąta przechyłu na podstawie fazy
-    tilt_angle = max_tilt_angle * np.sin(2 * np.pi * phase)
-
-    # Obliczenia geometryczne - zawsze dla wartości bezwzględnej
-    gamma = np.radians(90 + abs(tilt_angle))
+    # Oblicz aktualny kąt wychylenia
+    tilt_angle = center + amplitude * np.cos(2 * np.pi * phase)
+    
+    # Oblicz geometrię dla aktualnego kąta
+    gamma = np.radians(90 + tilt_angle)
     c = np.sqrt(a**2 + b**2 - 2 * a * b * np.cos(gamma))
     
-    # Kąt alfa
     cos_alfa = (b**2 + c**2 - a**2) / (2 * b * c)
-    cos_alfa = np.clip(cos_alfa, -1, 1)
-    alfa = np.arccos(cos_alfa)
+    alfa = np.arccos(np.clip(cos_alfa, -1, 1))
     
-    # Kąt beta
     cos_beta = (a**2 + c**2 - b**2) / (2 * a * c)
-    cos_beta = np.clip(cos_beta, -1, 1)
-    beta = np.arccos(cos_beta)
-
-    # Kąt delta
+    beta = np.arccos(np.clip(cos_beta, -1, 1))
+    
     cos_delta = (b**2 + d**2 - c**2) / (2 * b * d)
-    cos_delta = np.clip(cos_delta, -1, 1)
-    delta = np.arccos(cos_delta)
-
-    # Kąt beta_prim
+    delta = np.arccos(np.clip(cos_delta, -1, 1))
+    
     cos_beta_prim = (b**2 + c**2 - d**2) / (2 * b * c)
-    cos_beta_prim = np.clip(cos_beta_prim, -1, 1)
-    beta_prim = np.arccos(cos_beta_prim)
-
-    # Kąt alfa_prim
+    beta_prim = np.arccos(np.clip(cos_beta_prim, -1, 1))
+    
     cos_alfa_prim = (c**2 + d**2 - b**2) / (2 * c * d)
-    cos_alfa_prim = np.clip(cos_alfa_prim, -1, 1)
-    alfa_prim = np.arccos(cos_alfa_prim)
+    alfa_prim = np.arccos(np.clip(cos_alfa_prim, -1, 1))
     
-    # Obliczenie kątów stawów
-    foot_angle = 90 - np.degrees(beta + beta_prim)
-    hip_angle = 90 - np.degrees(alfa + alfa_prim)
-    hip_delta = 90 - np.degrees(delta)
-    
-    # Przypisanie do odpowiednich stron w zależności od znaku tilt_angle
-    if tilt_angle >= 0:
-        # Przechył w prawo
-        LEFT_FOOT = foot_angle
-        RIGHT_FOOT = abs(tilt_angle)
-        LEFT_HIP = hip_delta
-        RIGHT_HIP = hip_angle
-    else:
-        # Przechył w lewo - zamiana stron
-        LEFT_FOOT = abs(tilt_angle)
-        RIGHT_FOOT = foot_angle
-        LEFT_HIP = hip_angle
-        RIGHT_HIP = hip_delta
+    return [
+        np.degrees(beta + beta_prim) - 90,
+        -tilt_angle,
+        -(np.degrees(delta) - 90),
+        np.degrees(alfa + alfa_prim) - 90
+    ]
 
-    return {
-        'LEFT_FOOT': LEFT_FOOT,
-        'RIGHT_FOOT': RIGHT_FOOT,
-        'LEFT_HIP': LEFT_HIP,
-        'RIGHT_HIP': RIGHT_HIP,
-        'tilt_angle': tilt_angle
-    }
-
-
-if __name__ == "__main__":
-    print("=" * 80)
-    print("TEST FUNKCJI TILT - ROZKŁAD KĄTÓW PODCZAS CYKLU")
-    print("=" * 80)
-    print()
-    
-    max_tilt = 15
-    steps = 20
-    
-    print(f"Maksymalny kąt przechyłu: {max_tilt}°")
-    print(f"Liczba kroków: {steps}")
-    print()
-    print("-" * 80)
-    print(f"{'Phase':>6} | {'Tilt':>7} | {'L_FOOT':>8} | {'R_FOOT':>8} | {'L_HIP':>8} | {'R_HIP':>8}")
-    print("-" * 80)
-    
-    for i in range(steps + 1):
-        phase = i / steps
-        angles = tilt(phase, max_tilt_angle=max_tilt)
-        
-        print(f"{phase:6.2f} | "
-              f"{angles['tilt_angle']:7.2f}° | "
-              f"{angles['LEFT_FOOT']:8.2f}° | "
-              f"{angles['RIGHT_FOOT']:8.2f}° | "
-              f"{angles['LEFT_HIP']:8.2f}° | "
-              f"{angles['RIGHT_HIP']:8.2f}°")
-    
-    print("-" * 80)
-    print()
-    
-    # Pokaż kluczowe punkty
-    print("KLUCZOWE PUNKTY:")
-    print()
-    key_phases = [0, 0.25, 0.5, 0.75, 1.0]
-    for phase in key_phases:
-        angles = tilt(phase, max_tilt_angle=max_tilt)
-        print(f"Phase {phase:.2f} (tilt: {angles['tilt_angle']:6.2f}°):")
-        print(f"  LEFT_FOOT:  {angles['LEFT_FOOT']:7.2f}°")
-        print(f"  RIGHT_FOOT: {angles['RIGHT_FOOT']:7.2f}°")
-        print(f"  LEFT_HIP:   {angles['LEFT_HIP']:7.2f}°")
-        print(f"  RIGHT_HIP:  {angles['RIGHT_HIP']:7.2f}°")
-        print()
-    
-    # Sprawdzenie symetrii
-    print("WERYFIKACJA SYMETRII (0.25 vs 0.75):")
-    angles_025 = tilt(0.25, max_tilt_angle=max_tilt)
-    angles_075 = tilt(0.75, max_tilt_angle=max_tilt)
-    print(f"Phase 0.25: L_FOOT={angles_025['LEFT_FOOT']:.2f}°, R_FOOT={angles_025['RIGHT_FOOT']:.2f}°")
-    print(f"Phase 0.75: L_FOOT={angles_075['LEFT_FOOT']:.2f}°, R_FOOT={angles_075['RIGHT_FOOT']:.2f}°")
-    print(f"Czy zamienione? L_FOOT(0.25)≈R_FOOT(0.75): {abs(angles_025['LEFT_FOOT'] - angles_075['RIGHT_FOOT']) < 0.01}")
-    print(f"Czy zamienione? R_FOOT(0.25)≈L_FOOT(0.75): {abs(angles_025['RIGHT_FOOT'] - angles_075['LEFT_FOOT']) < 0.01}")
+left_foot, right_foot, left_hip, right_hip = tilt(0.0, 5)  # Przykładowe wywołanie funkcji
+print("Left Foot Angle:", left_foot)
+print("Right Foot Angle:", right_foot)
+print("Left Hip Angle:", left_hip)
+print("Right Hip Angle:", right_hip)
