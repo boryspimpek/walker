@@ -9,8 +9,8 @@ SWING_TIME = 0.2
 Z_OFFSET = 0.02
 X_OFFSET = 0.0
 
-FOOT_TILT = 15
-HIP_TILT = 10
+# FOOT_TILT = 15
+# HIP_TILT = 10
 HOLD_TIME = SWING_TIME * 0.75
 
 CYCLE_PERIOD = 4.0  # Okres pełnego cyklu chodu w sekundach
@@ -44,10 +44,11 @@ def create_ui_sliders():
         'camera_height': p.addUserDebugParameter("  Wysokosc", -1.0, 1.0, 0.0),
         'swing_height': p.addUserDebugParameter("  Wysokosc kroku", 0.0, 0.2, 0.0),
         'swing_width': p.addUserDebugParameter("  Szerokosc kroku", 0.0, 0.2, 0.0),
+        'tilt_angle': p.addUserDebugParameter("  Kat przechylenia", 0.0, 30.0, 15.0),
     }
     return sliders
 
-def solve_ik_3d(x, y, zt, leg, robot, phase=0.0, elbow_up=False):
+def solve_ik_3d(x, y, zt, leg, robot, phase, tilt_angle, elbow_up=False):
     z = zt - 0.128
     l1, l2, l3 = 0.04, 0.067, 0.067
     hip_roll = np.arctan2(y, z)
@@ -71,7 +72,7 @@ def solve_ik_3d(x, y, zt, leg, robot, phase=0.0, elbow_up=False):
     base_euler = p.getEulerFromQuaternion(base_orn)
 
     # Pobierz wartości tilt
-    left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt = tilt(phase)
+    left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt = tilt(phase, tilt_angle)
     
     # Konwersja stopni na radiany
     left_foot_tilt_rad = np.radians(left_foot_tilt)
@@ -114,7 +115,36 @@ def trot_gait(phase, swing_width, swing_height):
         z = TOTAL_HEIGHT - Z_OFFSET
     return x, z
 
-def tilt(phase):
+def tilt(phase, tilt_angle=20):
+    a = 0.03781
+    b = 0.2451325
+    d = 0.080
+
+    gamma = np.radians(90+tilt_angle)
+
+    c = np.sqrt(a**2 + b**2 - 2 * a * b * np.cos(gamma))
+    
+    cos_alfa = (b**2 + c**2 - a**2) / (2 * b * c)
+    alfa = np.arccos(cos_alfa)
+    
+    cos_beta = (a**2 + c**2 - b**2) / (2 * a * c)
+    beta = np.arccos(cos_beta)
+
+    cos_delta = (b**2 + d**2 - c**2) / (2 * b * d)
+    delta = np.arccos(cos_delta)
+
+    cos_beta_prim = (b**2 + c**2 - d**2) / (2 * b * c)
+    beta_prim = np.arccos(cos_beta_prim)
+
+    cos_alfa_prim = (c**2 + d**2 - b**2) / (2 * c * d)
+    alfa_prim = np.arccos(cos_alfa_prim)
+    
+    FOOT_TILT = tilt_angle
+    HIP_TILT = 90 - np.degrees(alfa + alfa_prim)
+
+    print("FOOT_TILT:", FOOT_TILT)
+    print("HIP_TILT:", HIP_TILT)
+
     # Normalizacja fazy
     phase = phase % 1.0
 
@@ -260,6 +290,7 @@ def main():
         # Odczytaj wartości ze sliderów
         swing_width = p.readUserDebugParameter(sliders['swing_width'])
         swing_height = p.readUserDebugParameter(sliders['swing_height'])
+        tilt_angle = p.readUserDebugParameter(sliders['tilt_angle'])
         
         # Oblicz fazę dla lewej nogi
         phase = (current_time % CYCLE_PERIOD) / CYCLE_PERIOD
@@ -269,8 +300,8 @@ def main():
             current_time, swing_width, swing_height)
 
         try:
-            left_targets = solve_ik_3d(left_x, left_y, left_z, "left", robot, phase)
-            right_targets = solve_ik_3d(right_x, right_y, right_z, "right", robot, phase)
+            left_targets = solve_ik_3d(left_x, left_y, left_z, "left", robot, phase, tilt_angle)
+            right_targets = solve_ik_3d(right_x, right_y, right_z, "right", robot, phase, tilt_angle)
 
             joint_targets = combine_leg_targets(left_targets, right_targets)
             apply_joint_targets(robot, joint_targets)
