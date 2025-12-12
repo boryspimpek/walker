@@ -9,8 +9,6 @@ SWING_TIME = 0.2
 Z_OFFSET = 0.02
 X_OFFSET = 0.0
 
-# FOOT_TILT = 15
-# HIP_TILT = 10
 HOLD_TIME = SWING_TIME * 0.75
 
 CYCLE_PERIOD = 4.0  # Okres pełnego cyklu chodu w sekundach
@@ -44,7 +42,7 @@ def create_ui_sliders():
         'camera_height': p.addUserDebugParameter("  Wysokosc", -1.0, 1.0, 0.0),
         'swing_height': p.addUserDebugParameter("  Wysokosc kroku", 0.0, 0.2, 0.0),
         'swing_width': p.addUserDebugParameter("  Szerokosc kroku", 0.0, 0.2, 0.0),
-        'tilt_angle': p.addUserDebugParameter("  Kat przechylenia", 0.0, 30.0, 15.0),
+        'tilt_angle': p.addUserDebugParameter("  Kat przechylenia", 0.0, 30.0, 0.0),
     }
     return sliders
 

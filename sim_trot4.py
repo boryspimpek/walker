@@ -3,6 +3,7 @@ import pybullet as p
 import pybullet_data
 import time
 import numpy as np
+# from servos import MoveServo
 
 TOTAL_HEIGHT = 0.302
 SWING_TIME = 0.2
@@ -10,6 +11,7 @@ Z_OFFSET = 0.02
 X_OFFSET = 0.0
 
 CYCLE_PERIOD = 4.0  # Okres pełnego cyklu chodu w sekundach
+last_send_time = 0
 
 def initialize_simulation():
     p.connect(p.GUI)
@@ -146,6 +148,39 @@ def apply_joint_targets(robot, joint_targets, force=500):
             force=force
         )
 
+def updateRobot(joint_targets, max_rate_hz=50):
+    global last_send_time
+    now = time.time()
+
+    # rate limiting (50 Hz domyślnie)
+    if now - last_send_time < 1.0 / max_rate_hz:
+        return
+
+    last_send_time = now
+
+    # ===== LEWA NOGA =====
+    hip_roll_L   = joint_targets[0]   # servo 1
+    hip_pitch_L  = joint_targets[2]   # servo 2
+    knee_L       = joint_targets[3]   # servo 3
+    ankle_L      = joint_targets[5]   # servo 4
+
+    # ===== PRAWA NOGA =====
+    hip_roll_R   = joint_targets[7]   # servo 5
+    hip_pitch_R  = joint_targets[9]   # servo 6
+    knee_R       = joint_targets[10]  # servo 7
+    ankle_R      = joint_targets[12]  # servo 8
+
+    # ==== Wysyłanie do serw ====
+    # MoveServo(1, np.degrees(hip_roll_L))
+    # MoveServo(2, np.degrees(hip_pitch_L))
+    # MoveServo(3, np.degrees(knee_L))
+    # MoveServo(4, np.degrees(ankle_L))
+
+    # MoveServo(5, np.degrees(hip_roll_R))
+    # MoveServo(6, np.degrees(hip_pitch_R))
+    # MoveServo(7, np.degrees(knee_R))
+    # MoveServo(8, np.degrees(ankle_R))
+
 def update_camera(robot, sliders):
     """Aktualizuje pozycję kamery na podstawie sliderów."""
     cam_dist = p.readUserDebugParameter(sliders['camera_distance'])
@@ -197,15 +232,12 @@ def main():
     while True:
         current_time = time.time() - start_time
         
-        # Odczytaj wartości ze sliderów
         swing_width = p.readUserDebugParameter(sliders['swing_width'])
         swing_height = p.readUserDebugParameter(sliders['swing_height'])
         tilt_amp = p.readUserDebugParameter(sliders['tilt_amplitude'])
         
-        # Oblicz fazę dla lewej nogi
         phase = (current_time % CYCLE_PERIOD) / CYCLE_PERIOD
         
-        # Oblicz wartość tilt dla aktualnej fazy
         tilt_offset = tilt(phase, np.radians(tilt_amp))     
 
         (left_x, left_y, left_z), (right_x, right_y, right_z), tilt_offset = get_trot_leg_positions(
@@ -217,6 +249,9 @@ def main():
             
             joint_targets = combine_leg_targets(left_targets, right_targets)
             apply_joint_targets(robot, joint_targets)
+
+            updateRobot(joint_targets)
+
         except ValueError as e:
             print(f"IK Error: {e}")
 
