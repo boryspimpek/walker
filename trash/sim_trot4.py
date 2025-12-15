@@ -3,7 +3,9 @@ import pybullet as p
 import pybullet_data
 import time
 import numpy as np
-# from servos import MoveServo
+from servos import MoveServo
+
+last_send_time = 0
 
 TOTAL_HEIGHT = 0.302
 SWING_TIME = 0.2
@@ -148,39 +150,6 @@ def apply_joint_targets(robot, joint_targets, force=500):
             force=force
         )
 
-def updateRobot(joint_targets, max_rate_hz=50):
-    global last_send_time
-    now = time.time()
-
-    # rate limiting (50 Hz domyślnie)
-    if now - last_send_time < 1.0 / max_rate_hz:
-        return
-
-    last_send_time = now
-
-    # ===== LEWA NOGA =====
-    hip_roll_L   = joint_targets[0]   # servo 1
-    hip_pitch_L  = joint_targets[2]   # servo 2
-    knee_L       = joint_targets[3]   # servo 3
-    ankle_L      = joint_targets[5]   # servo 4
-
-    # ===== PRAWA NOGA =====
-    hip_roll_R   = joint_targets[7]   # servo 5
-    hip_pitch_R  = joint_targets[9]   # servo 6
-    knee_R       = joint_targets[10]  # servo 7
-    ankle_R      = joint_targets[12]  # servo 8
-
-    # ==== Wysyłanie do serw ====
-    # MoveServo(1, np.degrees(hip_roll_L))
-    # MoveServo(2, np.degrees(hip_pitch_L))
-    # MoveServo(3, np.degrees(knee_L))
-    # MoveServo(4, np.degrees(ankle_L))
-
-    # MoveServo(5, np.degrees(hip_roll_R))
-    # MoveServo(6, np.degrees(hip_pitch_R))
-    # MoveServo(7, np.degrees(knee_R))
-    # MoveServo(8, np.degrees(ankle_R))
-
 def update_camera(robot, sliders):
     """Aktualizuje pozycję kamery na podstawie sliderów."""
     cam_dist = p.readUserDebugParameter(sliders['camera_distance'])
@@ -222,6 +191,43 @@ def debug_info(robot):
     print(f"Orientation (degrees): ({np.degrees(link_euler[0]):.2f}, {np.degrees(link_euler[1]):.2f}, {np.degrees(link_euler[2]):.2f})")
     print("=" * 50 + "\n")
 
+def updateRobot(joint_targets, max_rate_hz=50):
+    global last_send_time
+    now = time.time()
+
+    # rate limiting (50 Hz domyślnie)
+    if now - last_send_time < 1.0 / max_rate_hz:
+        return
+
+    last_send_time = now
+
+    # ===== LEWA NOGA =====
+    hip_roll_L   = 90 - math.degrees(joint_targets[0])   # servo 1
+    hip_pitch_L  = 90 + math.degrees(joint_targets[1])   # servo 2
+    knee_L       = 90 + math.degrees(joint_targets[3])   # servo 3
+    ankle_L      = 90 + math.degrees(joint_targets[5])   # servo 4
+
+    # ===== PRAWA NOGA =====
+    hip_roll_R   = 90 - math.degrees(joint_targets[7])   # servo 5
+    hip_pitch_R  = 90 - math.degrees(joint_targets[8])   # servo 6
+    knee_R       = 90 + math.degrees(joint_targets[10])  # servo 7
+    ankle_R      = 90 + math.degrees(joint_targets[12])  # servo 8
+    
+    print("Updating robot servos...")
+    print(f"Left Leg Targets: Hip Roll: {(hip_roll_L):.2f}, Hip Pitch: {(hip_pitch_L):.2f}, Knee: {(knee_L):.2f}, Ankle: {(ankle_L):.2f}")
+    print(f"Right Leg Targets: Hip Roll: {(hip_roll_R):.2f}, Hip Pitch: {(hip_pitch_R):.2f}, Knee: {(knee_R):.2f}, Ankle: {(ankle_R):.2f}")
+
+    # ==== Wysyłanie do serw ====
+    MoveServo(1, (hip_roll_L))
+    MoveServo(2, (hip_pitch_L))
+    MoveServo(3, (knee_L))
+    MoveServo(4, (ankle_L))
+
+    MoveServo(5, (hip_roll_R))
+    MoveServo(6, (hip_pitch_R))
+    MoveServo(7, (knee_R))
+    MoveServo(8, (ankle_R))
+
 def main():
     """Główna pętla symulacji."""
     robot = initialize_simulation()
@@ -260,6 +266,7 @@ def main():
         
         p.stepSimulation()
         time.sleep(1./240.)
+
 
 if __name__ == "__main__":
     main()

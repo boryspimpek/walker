@@ -1,8 +1,9 @@
 import time
 import math
 from st3215 import ST3215
+from servos import MoveServo, MoveToPoint
 
-servo = ST3215('COM3')
+# servo = ST3215('COM3')
 sts_id = [1, 2, 3, 4, 5, 6, 7, 8]   
 
 
@@ -26,11 +27,16 @@ sts_id = [1, 2, 3, 4, 5, 6, 7, 8]
 # print(f"Servo {id} position: {position}, angle: {angle}°")
 
 ######################################################## Check positions
-positions = {}
-for id in sts_id:
-    position = servo.ReadPosition(id)
-    positions[id] = position
-    print(positions)
+# positions = {}
+# for id in sts_id:
+#     position = servo.ReadPosition(id)
+#     print(f"Servo {id} position: {position}")
+
+
+# for id in sts_id:   
+#     MoveServo(id, 90)
+
+MoveServo(2, 90)
 
 
 # servo.MoveTo(1, 1024, 200, 10, True)

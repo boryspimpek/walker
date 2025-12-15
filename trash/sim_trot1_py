@@ -79,7 +79,6 @@ def solve_ik_3d(x, y, zt, leg, robot, elbow_up=False):
     return joint_targets
 
 def trot_gait(phase):
-    """Generuje trajektorię ruchu dla chodu kłusem."""
     half_w = SWING_WIDTH / 2
 
     if phase < SWING_TIME:
