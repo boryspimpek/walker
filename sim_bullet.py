@@ -5,17 +5,10 @@ import time
 import numpy as np
 from servos import MoveServo
 
-# ========================================
-# KONFIGURACJA STAŁYCH
-# ========================================
 LEFT_EE = 6
 RIGHT_EE = 13
 
-# ========================================
-# FUNKCJE POMOCNICZE
-# ========================================
 def init_simulation():
-    """Inicjalizacja środowiska + ładowanie robota"""
     p.connect(p.GUI)
     p.setAdditionalSearchPath(pybullet_data.getDataPath())
     p.setGravity(0, 0, -9.81)
@@ -61,8 +54,6 @@ def create_sliders():
     return sliders
 
 def get_leg_targets(sliders):
-    """Czyta wartości pozycji nóg ze sliderów"""
-
     left = [p.readUserDebugParameter(sliders["Lx"]),
             p.readUserDebugParameter(sliders["Ly"]),
             p.readUserDebugParameter(sliders["Lz"])]
@@ -112,15 +103,6 @@ def update_camera(robot, sliders):
     p.resetDebugVisualizerCamera(dist, yaw, pitch, target)
 
 def updateRobot(joint_targets, max_rate_hz=50):
-    global last_send_time
-    now = time.time()
-
-    # rate limiting (50 Hz domyślnie)
-    if now - last_send_time < 1.0 / max_rate_hz:
-        return
-
-    last_send_time = now
-
     # ===== LEWA NOGA =====
     hip_roll_L   = 90 - math.degrees(joint_targets[0])   # servo 1
     hip_pitch_L  = 90 + math.degrees(joint_targets[1])   # servo 2
@@ -133,12 +115,6 @@ def updateRobot(joint_targets, max_rate_hz=50):
     knee_R       = 90 + math.degrees(joint_targets[10])  # servo 7
     ankle_R      = 90 + math.degrees(joint_targets[12])  # servo 8
     
-    print("Updating robot servos...")
-    print(f"Left Leg Targets: Hip Roll: {(hip_roll_L):.2f}, Hip Pitch: {(hip_pitch_L):.2f}, Knee: {(knee_L):.2f}, Ankle: {(ankle_L):.2f}")
-    print(f"Right Leg Targets: Hip Roll: {(hip_roll_R):.2f}, Hip Pitch: {(hip_pitch_R):.2f}, Knee: {(knee_R):.2f}, Ankle: {(ankle_R):.2f}")
-
-
-
     # ==== Wysyłanie do serw ====
     MoveServo(1, (hip_roll_L))
     MoveServo(2, (hip_pitch_L))
@@ -150,10 +126,6 @@ def updateRobot(joint_targets, max_rate_hz=50):
     MoveServo(7, (knee_R))
     MoveServo(8, (ankle_R))
 
-# ========================================
-# GŁÓWNY PROGRAM
-# ========================================
-
 def main():
     robot = init_simulation()
     configure_dynamics(robot)
@@ -164,36 +136,9 @@ def main():
         left_target, right_target = get_leg_targets(sliders)
         joint_angles = compute_IK(robot, left_target, right_target)
 
-        # Wyświetlenie jointów
-        left_leg_angles = joint_angles[:7]
-        right_leg_angles = joint_angles[7:14]
-        print("Lewa noga:  ", ["{:.3f}".format(a) for a in left_leg_angles])
-        print("Prawa noga: ", ["{:.3f}".format(a) for a in right_leg_angles])        
-
         apply_joint_angles(robot, joint_angles)
-
-        hip_roll_L   = 90 - math.degrees(joint_angles[0])   # servo 1
-        hip_pitch_L  = 90 + math.degrees(joint_angles[1])   # servo 2
-        knee_L       = 90 + math.degrees(joint_angles[3])   # servo 3
-        ankle_L      = 90 + math.degrees(joint_angles[5])   # servo 4
-
-        # ===== PRAWA NOGA =====
-        hip_roll_R   = 90 - math.degrees(joint_angles[7])   # servo 5
-        hip_pitch_R  = 90 - math.degrees(joint_angles[8])   # servo 6
-        knee_R       = 90 + math.degrees(joint_angles[10])  # servo 7
-        ankle_R      = 90 + math.degrees(joint_angles[12])  # servo 8
-        # ==== Wysyłanie do serw ====
-        MoveServo(1, (hip_roll_L))
-        MoveServo(2, (hip_pitch_L))
-        MoveServo(3, (knee_L))
-        MoveServo(4, (ankle_L))
-
-        MoveServo(5, (hip_roll_R))
-        MoveServo(6, (hip_pitch_R))
-        MoveServo(7, (knee_R))
-        MoveServo(8, (ankle_R))
+        updateRobot(joint_angles, max_rate_hz=50)
         update_camera(robot, sliders)
-
         p.stepSimulation()
         time.sleep(1 / 240.0)
 

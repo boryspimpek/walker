@@ -8,11 +8,11 @@ from servos import MoveServo
 last_send_time = 0
 
 TOTAL_HEIGHT = 0.302
-SWING_TIME = 0.2
+SWING_TIME = 0.3
 Z_OFFSET = 0.02
 X_OFFSET = 0.0
 
-CYCLE_PERIOD = 4.0  # Okres pełnego cyklu chodu w sekundach
+CYCLE_PERIOD = 3.0  # Okres pełnego cyklu chodu w sekundach
 
 def initialize_simulation():
     p.connect(p.GUI)

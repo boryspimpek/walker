@@ -12,15 +12,15 @@ last_send_time = 0
 TOTAL_HEIGHT = 0.302
 SWING_WIDTH = 0.05
 SWING_HEIGHT = 0.03
-SWING_TIME = 0.2
+SWING_TIME = 0.35
 Z_OFFSET = 0.02            # minimalne ugiecie nóg aby mieć zasięg w poziomie         
 X_OFFSET = 0.0
 
 LEFT_FOOT_TILT = 15
 RIGHT_FOOT_TILT = 15
-LEFT_HIP_TILT = 5
-RIGHT_HIP_TILT = 5
-HOLD_TIME = SWING_TIME * 1 
+LEFT_HIP_TILT = -5
+RIGHT_HIP_TILT = -5
+HOLD_TIME = SWING_TIME * 1
 
 
 # ========================================
@@ -35,15 +35,15 @@ def init_simulation():
     return robot
 
 def create_debug_sliders():
-    """Tworzy slidery do sterowania parametrami"""
     sliders = {
         'camera_distance': p.addUserDebugParameter("  Odleglosc kamery", 0.1, 3.0, 0.5),
         'camera_yaw': p.addUserDebugParameter("  Obrot kamery (Yaw)", -180, 180, 90),
         'camera_pitch': p.addUserDebugParameter("  Nachylenie kamery (Pitch)", -89, 89, 0),
         'camera_height': p.addUserDebugParameter("  Wysokosc kamery", -1.0, 1.0, 0.0),
-        'speed': p.addUserDebugParameter("  Predkosc chodu", 0.1, 5.0, 0.5),
-        'swing_width': p.addUserDebugParameter("  Szerokosc kroku", 0.05, 0.4, SWING_WIDTH),
-        'swing_height': p.addUserDebugParameter("  Wysokosc kroku", 0.01, 0.15, SWING_HEIGHT)
+        'speed': p.addUserDebugParameter("  Predkosc chodu", 0.1, 5.0, 2.5),
+        'swing_width': p.addUserDebugParameter("  Szerokosc kroku", 0.0, 0.05, 0),
+        'swing_height': p.addUserDebugParameter("  Wysokosc kroku", 0.0, 0.05, 0),
+        'tilt_gain': p.addUserDebugParameter("  Przechyl (Tilt)", 0.0, 1.0, 0)
     }
     return sliders
 
@@ -83,7 +83,7 @@ def tilt(phase):
     elif phase < p2:
         progress = (phase - p1) / (p2 - p1)
         return (
-            0 - LEFT_FOOT_TILT  + 2 * LEFT_FOOT_TILT * progress,
+            0 - LEFT_FOOT_TILT + 2 * LEFT_FOOT_TILT * progress,
             0 - RIGHT_FOOT_TILT + 2 * RIGHT_FOOT_TILT * progress,
             0 + LEFT_HIP_TILT * progress,
             0 - RIGHT_HIP_TILT + RIGHT_HIP_TILT * progress
@@ -186,31 +186,53 @@ def calculate_leg_positions(phase, swing_width, swing_height):
     
     return (left_x, left_y, left_z), (right_x, right_y, right_z)
 
-def combine_leg_targets(left_pos, right_pos, phase):
+def combine_leg_targets(left_pos, right_pos, phase, tilt_gain):
+    # --- pozycje stóp ---
     left_x, left_y, left_z = left_pos
     right_x, right_y, right_z = right_pos
 
+    # --- bazowy tilt z funkcji czasowej ---
     left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt = tilt(phase)
 
-    left_targets = solve_ik_3d(left_x, 0, left_z, "left")
+    # --- SKALOWANIE SLIDEREM ---
+    left_foot_tilt  *= tilt_gain
+    right_foot_tilt *= tilt_gain
+    left_hip_tilt   *= tilt_gain
+    right_hip_tilt  *= tilt_gain
+
+    # --- IK ---
+    left_targets = solve_ik_3d(left_x,  0, left_z,  "left")
     right_targets = solve_ik_3d(right_x, 0, right_z, "right")
 
-    left_targets[0] = -np.radians(left_hip_tilt)     # hip roll
-    left_targets[5] = np.radians(left_foot_tilt)    # foot roll
+    # --- NADPISANIE TILTU ---
+    # lewa noga
+    left_targets[0] = -np.radians(left_hip_tilt)   # hip roll
+    left_targets[5] =  np.radians(left_foot_tilt)  # foot roll
 
-    right_targets[7] = -np.radians(right_hip_tilt)   # hip roll
-    right_targets[12] = np.radians(right_foot_tilt) # foot roll
+    # prawa noga
+    right_targets[7] = -np.radians(right_hip_tilt) # hip roll
+    right_targets[12] = np.radians(right_foot_tilt)# foot roll
 
+    # --- złożenie nóg w jedną listę jointów ---
     joint_targets = [0.0] * 14
     for i in range(14):
         joint_targets[i] = left_targets[i] if left_targets[i] != 0 else right_targets[i]
 
     return joint_targets
 
-def apply_joint_targets(robot, joint_targets):
-    num_joints = p.getNumJoints(robot)
-    for i in range(num_joints):
-        p.resetJointState(robot, i, joint_targets[i])
+def apply_joint_targets(robot, joint_targets, force=10000):
+    for jid in range(14):
+        p.setJointMotorControl2(
+            bodyIndex=robot,
+            jointIndex=jid,
+            controlMode=p.POSITION_CONTROL,
+            targetPosition=joint_targets[jid],
+            targetVelocity=0,
+            force=force,
+            positionGain=0.3,     # Kp
+            velocityGain=1.0,     # Kd (damping)
+            maxVelocity=2.0
+        )
 
 def update_camera(robot, sliders):
     """Aktualizuje pozycję kamery na podstawie sliderów"""
@@ -230,11 +252,11 @@ def update_camera(robot, sliders):
     )
 
 def read_gait_parameters(sliders):
-    """Odczytuje parametry chodu ze sliderów"""
     return {
         'speed': p.readUserDebugParameter(sliders['speed']),
         'swing_width': p.readUserDebugParameter(sliders['swing_width']),
-        'swing_height': p.readUserDebugParameter(sliders['swing_height'])
+        'swing_height': p.readUserDebugParameter(sliders['swing_height']),
+        'tilt_gain': p.readUserDebugParameter(sliders['tilt_gain'])
     }
 
 def updateRobot(joint_targets, max_rate_hz=50):
@@ -280,15 +302,15 @@ def main():
     phase = 0.0
     dt = 1./240.
 
-    p.setGravity(0, 0, 0)
-    init_pose(robot)
+    # p.setGravity(0, 0, 0)
+    # # init_pose(robot)
         
-    for _ in range(int(2 * 240)):  # 240 Hz
-        update_camera(robot, sliders)
-        p.stepSimulation()
-        time.sleep(1./240.)
+    # for _ in range(int(0.2 * 240)):  # 240 Hz
+    #     update_camera(robot, sliders)
+    #     p.stepSimulation()
+    #     time.sleep(1./240.)
     
-    p.setGravity(0, 0, -9.81)
+    # p.setGravity(0, 0, -9.81)
 
     # --- Główna animacja ---
     while True:
@@ -301,10 +323,10 @@ def main():
             phase, params['swing_width'], params['swing_height']
         )
 
-        joint_targets = combine_leg_targets(left_pos, right_pos, phase)
+        joint_targets = combine_leg_targets(left_pos, right_pos, phase, params['tilt_gain'])
 
         apply_joint_targets(robot, joint_targets)
-        # updateRobot(joint_targets)
+        updateRobot(joint_targets)
 
         update_camera(robot, sliders)
         p.stepSimulation()
