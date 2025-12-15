@@ -8,7 +8,7 @@ from servos import MoveServo
 last_send_time = 0
 
 TOTAL_HEIGHT = 0.302
-SWING_WIDTH = 0.0
+SWING_WIDTH = 0.05
 SWING_HEIGHT = 0.05
 SWING_TIME = 0.2
 Z_OFFSET = 0.02

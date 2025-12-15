@@ -75,6 +75,9 @@ def compute_IK(robot, left_target, right_target):
     right_ik = p.calculateInverseKinematics(
         robot, RIGHT_EE, right_target, target_orientation)
 
+    base_pos, base_orn = p.getBasePositionAndOrientation(robot)
+    base_euler = p.getEulerFromQuaternion(base_orn)
+
     joint_angles = [0] * num_joints
 
     for i in range(6):  # lewa noga

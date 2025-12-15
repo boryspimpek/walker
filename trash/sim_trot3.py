@@ -12,7 +12,7 @@ SWING_TIME = 0.3
 Z_OFFSET = 0.02
 X_OFFSET = 0.0
 
-CYCLE_PERIOD = 3.0  # Okres pełnego cyklu chodu w sekundach
+CYCLE_PERIOD = 5.0  # Okres pełnego cyklu chodu w sekundach
 
 def initialize_simulation():
     p.connect(p.GUI)
@@ -229,16 +229,6 @@ def main():
     robot = initialize_simulation()
     sliders = create_ui_sliders()
 
-    # p.setGravity(0, 0, 0)
-    # init_pose(robot)
-        
-    # for _ in range(int(2 * 240)):  # 240 Hz
-    #     update_camera(robot, sliders)
-    #     debug_info(robot)
-    #     p.stepSimulation()
-    #     time.sleep(1./240.)
-    
-    # p.setGravity(0, 0, -9.81)
     start_time = time.time()
     
     while True:
