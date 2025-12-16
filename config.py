@@ -1,19 +1,17 @@
-CYCLE_TIME = 5.0
+CYCLE_TIME = 4.0
 
 SWING_TIME = 0.35 # procent of cycle time
 SWING_WIDTH = 30
-SWING_HEIGHT = 10
+SWING_HEIGHT = 20
 
 X_OFFSET = 0
 BASE_Z = -95
 
 # skraca czas w ktorym robot jest sztywno przechylony w bok, zaczyna wcześniej przenosić CoM
-HOLD_TIME = SWING_TIME * 0.75 
+HOLD_TIME = SWING_TIME * 1 
 
-LEFT_FOOT_TILT = 15
-RIGHT_FOOT_TILT = 15
-LEFT_HIP_TILT = 5
-RIGHT_HIP_TILT = 5
+FOOT_TILT = 15
+HIP_TILT = 5
 
 L1 = 55     
 L2 = 55
