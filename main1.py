@@ -187,7 +187,7 @@ def runTrotGaitTwoLegs(num_cycles):
 
 
 runInitialHalfStep()
-runTrotGaitTwoLegs(1)
+runTrotGaitTwoLegs(5)
 runFinalHalfStep()
 
 
