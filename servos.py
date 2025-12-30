@@ -42,14 +42,22 @@ def MoveToPoint(x, z, leg, speed=None, acc=None):
         acc = ACC
 
     if leg == 'right':
-        ik = solve_ik_2d(-x, z, L1, L2, elbow_up=False)
+        ik = solve_ik_2d(-x, z, L1, L2, elbow_up=True)
         if ik is not None:
             t1, t2 = ik
-            MoveServo(2, math.degrees(t1), speed, acc)
+            MoveServo(2, math.degrees(t1), speed=1000, acc=acc)
             MoveServo(3, math.degrees(t1) + math.degrees(t2), speed, acc)
     else:
-        ik = solve_ik_2d(x, z, L1, L2, elbow_up=True)
+        ik = solve_ik_2d(x, z, L1, L2, elbow_up=False)
         if ik is not None:
             t1, t2 = ik
-            MoveServo(6, math.degrees(t1), speed, acc)
+            MoveServo(6, math.degrees(t1), speed=1000, acc=acc)
             MoveServo(7, math.degrees(t1) + math.degrees(t2), speed, acc)
+
+MoveServo(2, 120)
+MoveServo(3, 60)
+MoveServo(6, 60)
+MoveServo(7, 120)
+
+
+

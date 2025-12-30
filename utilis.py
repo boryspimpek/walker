@@ -1,6 +1,9 @@
 import time
 import math
+# from servos import MoveServo
+from config import trims
 from st3215 import ST3215
+
 
 
 servo = ST3215('COM3')
@@ -29,8 +32,13 @@ sts_id = [1, 2, 3, 4, 5, 6, 7, 8]
 ######################################################## Check positions
 positions = {}
 for id in sts_id:
-    position = servo.ReadPosition(id)
-    print(f"Servo {id} position: {position}")
+    position = servo.ReadPosition(id) - trims[id] 
+    
+    position_deg = servo.servo_to_deg(position)
+    
+    positions[id] = position_deg
+    
+    print(f"Servo {id} position: {position_deg}")
 
 
 # for id in sts_id:   

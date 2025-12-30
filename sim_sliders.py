@@ -167,14 +167,14 @@ def updateRobot(joint_targets, max_rate_hz=50):
 
     # ===== LEWA NOGA =====
     hip_roll_L   = 90 - math.degrees(joint_targets[0])   # servo 1
-    hip_pitch_L  = 90 + math.degrees(joint_targets[1])   # servo 2
-    knee_L       = 90 + math.degrees(joint_targets[3])   # servo 3
+    hip_pitch_L  = 90 - math.degrees(joint_targets[1])   # servo 2
+    knee_L       = 90 - math.degrees(joint_targets[3])   # servo 3
     ankle_L      = 90 + math.degrees(joint_targets[5])   # servo 4
 
     # ===== PRAWA NOGA =====
     hip_roll_R   = 90 - math.degrees(joint_targets[7])   # servo 5
-    hip_pitch_R  = 90 - math.degrees(joint_targets[8])   # servo 6
-    knee_R       = 90 + math.degrees(joint_targets[10])  # servo 7
+    hip_pitch_R  = 90 + math.degrees(joint_targets[8])   # servo 6
+    knee_R       = 90 - math.degrees(joint_targets[10])  # servo 7
     ankle_R      = 90 + math.degrees(joint_targets[12])  # servo 8
     
     print("Updating robot servos...")

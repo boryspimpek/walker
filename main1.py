@@ -2,11 +2,12 @@ import math
 import time
 
 from ik import solve_ik_2d
-from servos import MoveServo
+from servos import MoveServo, MoveToPoint
 from config import HOLD_TIME, L1, L2, CYCLE_TIME, FOOT_TILT, HIP_TILT, SWING_WIDTH, SWING_HEIGHT, SWING_TIME, X_OFFSET, BASE_Z
 
-def trot_gait(phase):
-    half_width = SWING_WIDTH / 2
+def trot_gait(phase, direction=-1): # direction=-1 to przód, 1 to tył
+    half_width = (SWING_WIDTH / 2) * direction
+    current_width = SWING_WIDTH * direction
     
     if phase < SWING_TIME:
         t_swing = phase / SWING_TIME
@@ -15,14 +16,13 @@ def trot_gait(phase):
         z = BASE_Z + SWING_HEIGHT * math.sin(angle)
     else:
         t_support = (phase - SWING_TIME) / (1 - SWING_TIME)
-        x = -half_width + SWING_WIDTH * t_support + X_OFFSET
+        x = -half_width + current_width * t_support + X_OFFSET
         z = BASE_Z
     return x, z
 
-def initial_half_step(phase, do_swing=True):
-    half_width = SWING_WIDTH / 2
+def initial_half_step(phase, do_swing=True, direction=-1):
+    half_width = (SWING_WIDTH / 2) * direction
     
-    # Prosty, liniowy ruch przez cały czas (phase 0.0 → 1.0)
     if do_swing:
         angle = math.pi * phase
         x = -half_width * phase + X_OFFSET
@@ -33,17 +33,15 @@ def initial_half_step(phase, do_swing=True):
     
     return x, z
 
-def final_half_step(phase, do_swing=True):
-    half_width = SWING_WIDTH / 2
+def final_half_step(phase, do_swing=True, direction=-1):
+    half_width = (SWING_WIDTH / 2) * direction
     
     if do_swing:
-        # Swing z tyłu do środka
-        angle = math.pi * phase  # 0 → π
-        x = half_width - half_width * phase + X_OFFSET  # tył → środek
+        angle = math.pi * phase
+        x = half_width - half_width * phase + X_OFFSET
         z = BASE_Z + SWING_HEIGHT * math.sin(angle)
     else:
-        # Stance z przodu do środka
-        x = -half_width + half_width * phase + X_OFFSET  # przód → środek
+        x = -half_width + half_width * phase + X_OFFSET
         z = BASE_Z
     
     return x, z
@@ -54,6 +52,7 @@ def apply_ik(x, z, servo_hip, servo_knee, elbow_up):
         t1, t2 = ik
         MoveServo(servo_hip, math.degrees(t1))
         MoveServo(servo_knee, math.degrees(t1) + math.degrees(t2))
+        print(math.degrees(t1), math.degrees(t1) + math.degrees(t2))
 
 def apply_tilt(phase):
     left_foot_tilt, right_foot_tilt, left_hip_tilt, right_hip_tilt = tilt(phase)
@@ -88,7 +87,22 @@ def runInitialHalfStep():
     half_step_time = CYCLE_TIME/2
     transition_time = (CYCLE_TIME/2) * 0.35  # czas na zmianę przechyłu po wylądowaniu
     
+    ################ TODO należy sie dowiedzieć czy ten cas pre_tilt_time wlicza sie w czas całej fazy initial step,
+    #  czy jest dodatkowo przed, bo powinien byc dodatkowo ##########################
+    pre_tilt_time = 0.35  # Adjust based on servo speed (e.g., 200ms)
+    tilt_start = time.perf_counter()
+
+    while time.perf_counter() - tilt_start < pre_tilt_time:
+        t_phase = (time.perf_counter() - tilt_start) / pre_tilt_time
+        # Smoothly move from 90 to the tilted position
+        MoveServo(4, 90 + (FOOT_TILT * t_phase))
+        MoveServo(8, 90 + (FOOT_TILT * t_phase))
+        MoveServo(1, 90 + (HIP_TILT * t_phase))
+        time.sleep(0.01)
+    ##########################################################################
+
     print("initial half step:")
+    start = time.perf_counter() # Reset start here!
     while time.perf_counter() - start < half_step_time + transition_time:
         elapsed = time.perf_counter() - start
         
@@ -97,17 +111,18 @@ def runInitialHalfStep():
             phase = elapsed / half_step_time
             x_l, z_l = initial_half_step(phase, do_swing=False)
             x_r, z_r = initial_half_step(phase, do_swing=True)
+            # print(x_l, x_r)
             
-            apply_ik(-x_l, z_l, 2, 3, elbow_up=False)
-            apply_ik(x_r, z_r, 6, 7, elbow_up=True)
+            apply_ik(-x_l, z_l, 2, 3, elbow_up=True)
+            apply_ik(x_r, z_r, 6, 7, elbow_up=False)
             
             # Statyczny przechył w prawo przez cały half-step
             progress = 1.0
             hip_progress = 1.0
-            MoveServo(4, 90 + FOOT_TILT * progress)
-            MoveServo(8, 90 + FOOT_TILT * progress)
-            MoveServo(1, 90 + HIP_TILT * hip_progress)
-            MoveServo(5, 90 - HIP_TILT * (1.0 - hip_progress))
+            MoveServo(4, 90 + FOOT_TILT)
+            MoveServo(8, 90 + FOOT_TILT)
+            MoveServo(1, 90 + HIP_TILT)
+            MoveServo(5, 90)
         else:
             # Faza 2: Zmiana przechyłu po wylądowaniu
             transition_phase = (elapsed - half_step_time) / transition_time
@@ -136,11 +151,12 @@ def runFinalHalfStep():
             # Faza 1: Wykonywanie final half-stepa
             phase = elapsed / half_step_time
             
-            x_l, z_l = final_half_step(phase, do_swing=True)   # prawa swing
-            x_r, z_r = final_half_step(phase, do_swing=False)  # lewa stance
+            x_l, z_l = final_half_step(phase, do_swing=True)   
+            x_r, z_r = final_half_step(phase, do_swing=False)  
+            # print(x_l, x_r)
             
-            apply_ik(-x_l, z_l, 2, 3, elbow_up=False)
-            apply_ik(x_r, z_r, 6, 7, elbow_up=True)
+            apply_ik(-x_l, z_l, 2, 3, elbow_up=True)
+            apply_ik(x_r, z_r, 6, 7, elbow_up=False)
             
             # Statyczny przechył w lewo przez cały half-step
             progress = -1.0
@@ -161,7 +177,8 @@ def runFinalHalfStep():
             MoveServo(5, 90 - 0 * (1.0 - hip_progress))
         
         time.sleep(0.02)
-    
+    MoveToPoint(0, -95, "left")
+    MoveToPoint(0, -95, "right")
     print("Final half-step completed - robot stopped in neutral position")
 
 def runTrotGaitTwoLegs(num_cycles):
@@ -176,8 +193,8 @@ def runTrotGaitTwoLegs(num_cycles):
         x_l, z_l = trot_gait(phase)
         x_r, z_r = trot_gait(phase_left)
 
-        apply_ik(-x_l, z_l, 2, 3, elbow_up=False)
-        apply_ik(x_r, z_r, 6, 7, elbow_up=True)
+        apply_ik(-x_l, z_l, 2, 3, elbow_up=True)
+        apply_ik(x_r, z_r, 6, 7, elbow_up=False)
         
         apply_tilt(phase)
 
@@ -187,7 +204,6 @@ def runTrotGaitTwoLegs(num_cycles):
 
 
 runInitialHalfStep()
-runTrotGaitTwoLegs(5)
+# runTrotGaitTwoLegs(1)
 runFinalHalfStep()
-
 

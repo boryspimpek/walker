@@ -1,12 +1,13 @@
-import keyboard  # pip install keyboard
+import keyboard
 from st3215 import ST3215
 import time
+from config import trims, sts_id
 
 servo = ST3215('COM3')
 
-sts_id = [1, 2, 3, 4, 5, 6, 7, 8]
+BASE_POSITION = 1024
 
-positions = {sid: 1024 for sid in sts_id}
+positions = {sid: BASE_POSITION + trims.get(sid, 0) for sid in sts_id}
 initial_positions = positions.copy()
 
 servo_keys = {
@@ -22,14 +23,16 @@ servo_keys = {
 
 STEP = 5  
 SPEED = 200
-ACC = 10
+ACC_LOCAL = 10  # lokalne do trybu trimowania
+
 
 def center_all_servos():
-    print("Ustawiam wszystkie serwa na 1024...")
+    print("Ustawiam wszystkie serwa na pozycje z trimów...")
     for sid in sts_id:
-        servo.MoveTo(sid, 1024, SPEED, ACC, False)
+        servo.MoveTo(sid, positions[sid], SPEED, ACC_LOCAL, False)
         time.sleep(0.05)
-    print("Gotowe! Wszystkie serwa są w pozycji neutralnej.\n")
+    print("Gotowe! Serwa ustawione wg zapisanych trimów.\n")
+
 
 def trim_servos():
     print("Tryb trimowania uruchomiony.")
@@ -42,13 +45,13 @@ def trim_servos():
         for sid, (left, right) in servo_keys.items():
             if keyboard.is_pressed(left):
                 positions[sid] = max(0, positions[sid] - STEP)
-                servo.MoveTo(sid, positions[sid], SPEED, ACC, False)
+                servo.MoveTo(sid, positions[sid], SPEED, ACC_LOCAL, False)
                 print(f"Serwo {sid}: {positions[sid]}")
                 time.sleep(0.1)
 
             elif keyboard.is_pressed(right):
                 positions[sid] = min(2048, positions[sid] + STEP)
-                servo.MoveTo(sid, positions[sid], SPEED, ACC, False)
+                servo.MoveTo(sid, positions[sid], SPEED, ACC_LOCAL, False)
                 print(f"Serwo {sid}: {positions[sid]}")
                 time.sleep(0.1)
 
@@ -56,9 +59,9 @@ def trim_servos():
             print("\nZakończono trimowanie.\n")
             break
 
-    print("📋 Podsumowanie zmian:")
+    print("📋 Podsumowanie zmian względem zapisanych trimów:")
     for sid in sts_id:
-        diff = positions[sid] - initial_positions[sid]
+        diff = positions[sid] - (BASE_POSITION + trims.get(sid, 0))
         znak = "+" if diff > 0 else ""
         print(f"Serwo {sid} -> {znak}{diff} (końcowa pozycja: {positions[sid]})")
 
